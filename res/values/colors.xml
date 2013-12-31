@@ -47,9 +47,9 @@
     <color name="background_dialpad">#f2020709</color>
 
     <!-- Primary color of dialpad text, including the call button -->
-    <color name="dialpad_primary_text_color">#33b5e5</color>
-	<!-- Call button color separated from dialpad_primary_text_color, for better theme support -->
-    <color name="dialpad_call_button_color">#22b5e5</color>
+    <color name="dialpad_primary_text_color">#ffffff</color>
+    <!-- Call button color separated from dialpad_primary_text_color, for better theme support -->
+    <color name="dialpad_call_button_color">#181818</color>
     <!-- Secondary color of dialpad text (used for the letters corresponding to each digit -->
     <color name="dialpad_secondary_text_color">#aaaaaa</color>
 
