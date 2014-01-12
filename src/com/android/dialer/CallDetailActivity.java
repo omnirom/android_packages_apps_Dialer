@@ -135,6 +135,8 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     private boolean mHasTrashOption;
     /** Whether we should show "remove from call log" in the options menu. */
     private boolean mHasRemoveFromCallLogOption;
+	/** Whether we should show "add to blacklist" in the options menu */
+	private boolean mHasBlacklistOption;
 
     private ProximitySensorManager mProximitySensorManager;
     private final ProximitySensorListener mProximitySensorListener = new ProximitySensorListener();
@@ -377,7 +379,9 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                 mHasEditNumberBeforeCallOption = mCallDetailHeader.canEditNumberBeforeCall();
                 mHasTrashOption = hasVoicemail();
                 mHasRemoveFromCallLogOption = !hasVoicemail();
-                invalidateOptionsMenu();
+                mHasBlacklistOption = mContactInfoHelper.canBlacklistCalls();
+
+				invalidateOptionsMenu();
 
                 ListView historyList = (ListView) findViewById(R.id.history);
                 historyList.setAdapter(
@@ -538,6 +542,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
         menu.findItem(R.id.menu_remove_from_call_log).setVisible(mHasRemoveFromCallLogOption);
         menu.findItem(R.id.menu_edit_number_before_call).setVisible(mHasEditNumberBeforeCallOption);
         menu.findItem(R.id.menu_trash).setVisible(mHasTrashOption);
+		menu.findItem(R.id.menu_add_to_blacklist).setVisible(mHasBlacklistOption);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -567,6 +572,10 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
 
     public void onMenuEditNumberBeforeCall(MenuItem menuItem) {
         startActivity(new Intent(Intent.ACTION_DIAL, CallUtil.getCallUri(mNumber)));
+    }
+
+    public void onMenuAddToBlacklist(MenuItem menuItem) {
+        mContactInfoHelper.addNumberToBlacklist(mNumber);
     }
 
     public void onMenuTrashVoicemail(MenuItem menuItem) {
