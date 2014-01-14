@@ -2,13 +2,20 @@ package com.android.dialer.list;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Handler;
 import android.telephony.PhoneNumberUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.util.List;
 
 import com.android.contacts.common.GeoUtil;
 import com.android.contacts.common.list.ContactListItemView;
 import com.android.contacts.common.list.PhoneNumberListAdapter;
+
+import com.android.dialer.omni.AbstractPlaceApi;
+import com.android.dialer.omni.OsmApi;
 import com.android.dialer.R;
 
 /**
@@ -24,6 +31,14 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
 
     private String mFormattedQueryString;
     private String mCountryIso;
+
+    private OsmApi mOsmApi;
+    private List<AbstractPlaceApi.Place> mPlacesList;
+    private String mPreviousQuery;
+    private Handler mHandler;
+    private Thread mQueryThread;
+    private boolean mQueryInProgress = false;
+    private final Object mQueryLock = new Object();
 
     public final static int SHORTCUT_INVALID = -1;
     public final static int SHORTCUT_DIRECT_CALL = 0;
@@ -42,11 +57,14 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
         for (int i = 0; i < mShortcutEnabled.length; i++) {
             mShortcutEnabled[i] = true;
         }
+
+        mHandler = new Handler();
+        mOsmApi = new OsmApi("http://overpass-api.de/api/interpreter");
     }
 
     @Override
     public int getCount() {
-        return super.getCount() + getShortcutCount();
+        return super.getCount() + getSuggestionsCount() + getShortcutCount();
     }
 
     /**
@@ -60,12 +78,22 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
         return count;
     }
 
+    public int getSuggestionsCount() {
+        if (mPlacesList == null) {
+            return 0;
+        } else {
+            return mPlacesList.size();
+        }
+    }
+
     @Override
     public int getItemViewType(int position) {
         final int shortcut = getShortcutTypeFromPosition(position);
         if (shortcut >= 0) {
             // shortcutPos should always range from 1 to SHORTCUT_COUNT
             return super.getViewTypeCount() + shortcut;
+        } else if (position >= super.getCount()) {
+            return super.getViewTypeCount() + SHORTCUT_COUNT;
         } else {
             return super.getItemViewType(position);
         }
@@ -74,23 +102,37 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
     @Override
     public int getViewTypeCount() {
         // Number of item view types in the super implementation + 2 for the 2 new shortcuts
-        return super.getViewTypeCount() + SHORTCUT_COUNT;
+        // + 1 for suggestions
+        return super.getViewTypeCount() + SHORTCUT_COUNT + 1;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        final int suggestionIndex = position - super.getCount();
         final int shortcutType = getShortcutTypeFromPosition(position);
-        if (shortcutType >= 0) {
-            if (convertView != null) {
-                assignShortcutToView((ContactListItemView) convertView, shortcutType);
-                return convertView;
+        
+        synchronized (mQueryLock) {
+            if (shortcutType >= 0) {
+                if (convertView != null) {
+                    assignShortcutToView((ContactListItemView) convertView, shortcutType);
+                    return convertView;
+                } else {
+                    final ContactListItemView v = new ContactListItemView(getContext(), null);
+                    assignShortcutToView(v, shortcutType);
+                    return v;
+                }
+            } else if (suggestionIndex >= 0 && mPlacesList != null && mPlacesList.size() > 0 && suggestionIndex < mPlacesList.size()) {
+                if (convertView != null) {
+                    assignSuggestionToView((ContactListItemView) convertView, suggestionIndex);
+                    return convertView;
+                } else {
+                    final ContactListItemView v = new ContactListItemView(getContext(), null);
+                    assignSuggestionToView(v, suggestionIndex);
+                    return v;
+                }
             } else {
-                final ContactListItemView v = new ContactListItemView(getContext(), null);
-                assignShortcutToView(v, shortcutType);
-                return v;
+                return super.getView(position, convertView, parent);
             }
-        } else {
-            return super.getView(position, convertView, parent);
         }
     }
 
@@ -100,7 +142,7 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
      * shortcut, -1 otherwise
      */
     public int getShortcutTypeFromPosition(int position) {
-        int shortcutCount = position - super.getCount();
+        int shortcutCount = position - (super.getCount() + getSuggestionsCount());
         if (shortcutCount >= 0) {
             // Iterate through the array of shortcuts, looking only for shortcuts where
             // mShortcutEnabled[i] is true
@@ -118,7 +160,7 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
 
     @Override
     public boolean isEmpty() {
-        return getShortcutCount() == 0 && super.isEmpty();
+        return getShortcutCount() == 0 && getSuggestionsCount() == 0 && super.isEmpty();
     }
 
     @Override
@@ -153,6 +195,23 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
         v.setPhotoPosition(super.getPhotoPosition());
     }
 
+    private void assignSuggestionToView(ContactListItemView v, int suggestionIndex) {
+        final Resources resources = getContext().getResources();
+        final OsmApi.Place place = mPlacesList.get(suggestionIndex);
+        if (mPreviousQuery != null) {
+            v.setHighlightedPrefix(mPreviousQuery.toUpperCase());
+        }
+        if (suggestionIndex == 0) {
+            v.setSectionHeader(resources.getString(R.string.nearby_places));
+        } else {
+            v.setSectionHeader(null);
+        }
+        v.setDrawableResource(R.drawable.list_item_avatar_bg, R.drawable.ic_phone_dk);
+        v.setDisplayName(place.tags.get(OsmApi.Place.TAG_NAME));
+        v.setPhoneNumber(PhoneNumberUtils.formatNumber(PhoneNumberUtils.convertAndStrip(place.tags.get(OsmApi.Place.TAG_PHONE)), mCountryIso));
+        v.setPhotoPosition(super.getPhotoPosition());
+    }
+
     public void setShortcutEnabled(int shortcutType, boolean visible) {
         mShortcutEnabled[shortcutType] = visible;
     }
@@ -165,6 +224,45 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
     public void setQueryString(String queryString) {
         mFormattedQueryString = PhoneNumberUtils.formatNumber(
                 PhoneNumberUtils.convertAndStrip(queryString), mCountryIso);
+        
+        // Query api for nearby places with that name
+        queryPlaces(queryString);
+
         super.setQueryString(queryString);
     }
+
+    public void queryPlaces(final String query) {
+        if (mPreviousQuery != null && query.equals(mPreviousQuery)) return;
+        mPreviousQuery = query;
+
+        if (mQueryThread != null) {
+            mQueryThread.interrupt();
+        }
+
+        mQueryThread = new Thread() {
+            @Override
+            public void run() {
+                mQueryInProgress = true;
+                List<AbstractPlaceApi.Place> places = mOsmApi.getNamedPlacesAround(query, 48.69005, 6.18176, 0.4);
+
+                if (isInterrupted()) {
+                    return;
+                }
+
+                synchronized (mQueryLock) {
+                    mPlacesList = places;
+                }
+
+                mHandler.post(new Runnable() {
+                    public void run() {
+                        notifyDataSetChanged();
+                        mQueryInProgress = false;
+                    }
+                });
+            }
+        };
+
+        mQueryThread.start();
+    }
+
 }

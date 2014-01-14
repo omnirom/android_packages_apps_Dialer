@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The OmniROM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +17,28 @@
 package com.android.dialer.list;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.view.View;
+import android.view.ViewGroup;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 
+import com.android.contacts.common.list.ContactListItemView;
 import com.android.contacts.common.list.DirectoryPartition;
 import com.android.contacts.common.list.PhoneNumberListAdapter;
 import com.android.dialer.calllog.ContactInfo;
 import com.android.dialer.service.CachedNumberLookupService;
 import com.android.dialer.service.CachedNumberLookupService.CachedContactInfo;
 
+
 /**
- * List adapter to display regular search results.
+ * List adapter to display regular search results, augmented by OSM Overpass API
+ * if user opted-in and if Location services are enabled.
  */
 public class RegularSearchListAdapter extends DialerPhoneNumberListAdapter {
+
 
     public RegularSearchListAdapter(Context context) {
         super(context);
