@@ -93,9 +93,18 @@ public class SearchFragment extends PhoneNumberPickerFragment {
     protected void onItemClick(int position, long id) {
         final DialerPhoneNumberListAdapter adapter = (DialerPhoneNumberListAdapter) getAdapter();
         final int shortcutType = adapter.getShortcutTypeFromPosition(position);
+        final int suggestionIndex = adapter.getSuggestionIndexFromPosition(position);
 
         if (shortcutType == DialerPhoneNumberListAdapter.SHORTCUT_INVALID) {
-            super.onItemClick(position, id);
+            if (suggestionIndex >= 0) {
+                final OnPhoneNumberPickerActionListener listener =
+                        getOnPhoneNumberPickerListener();
+                if (listener != null) {
+                    listener.onCallNumberDirectly(adapter.getSuggestionPhoneNumber(position));
+                }
+            } else {
+                super.onItemClick(position, id);
+            }
         } else if (shortcutType == DialerPhoneNumberListAdapter.SHORTCUT_DIRECT_CALL) {
             final OnPhoneNumberPickerActionListener listener =
                     getOnPhoneNumberPickerListener();
