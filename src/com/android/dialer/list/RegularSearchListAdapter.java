@@ -27,8 +27,9 @@ import com.android.dialer.calllog.ContactInfo;
 import com.android.dialer.service.CachedNumberLookupService;
 import com.android.dialer.service.CachedNumberLookupService.CachedContactInfo;
 
+
 /**
- * List adapter to display regular search results.
+ * List adapter to display regular search results
  */
 public class RegularSearchListAdapter extends DialerPhoneNumberListAdapter {
 
