@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2013 The CyanogenMod Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="call_log_stats_title">Statistiche</string>
+    <string name="callStatsDetailTitle">Statistiche dettaglio chiamate</string>
+
+    <string name="call_stats">Statistiche chiamate</string>
+    <string name="call_stats_refresh">Aggiorna</string>
+    <string name="activity_title_call_stats">Statistiche chiamate</string>
+
+    <string name="call_stats_nav_all">Tutte</string>
+    <string name="call_stats_nav_incoming">In arrivo</string>
+    <string name="call_stats_nav_outgoing">In uscita</string>
+    <string name="call_stats_nav_missed">Perse</string>
+    <string name="call_stats_incoming">In arrivo: <xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="call_stats_outgoing">In uscita: <xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="call_stats_missed">Perse</string>
+    <string name="call_stats_missed_percent">Perse: <xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="call_stats_header_total">Totali: <xliff:g id="call_count">%s</xliff:g>, <xliff:g id="duration">%s</xliff:g></string>
+    <string name="call_stats_header_total_callsonly">Totali: <xliff:g id="call_count">%s</xliff:g></string>
+    <string name="call_stats_filter_from">Data di inizio</string>
+    <string name="call_stats_filter_to">Data di fine</string>
+    <string name="call_stats_filter_picker_title">Filtri</string>
+
+    <string name="date_quick_selection">Selezione rapida</string>
+    <string name="date_qs_currentmonth">Mese attuale</string>
+    <string name="date_qs_currentquarter">Trimestre attuale</string>
+    <string name="date_qs_currentyear">Anno attuale</string>
+    <string name="date_qs_lastweek">Scorsa settimana</string>
+    <string name="date_qs_lastmonth">Scorso mese</string>
+    <string name="date_qs_lastquarter">Scorso trimestre</string>
+    <string name="date_qs_lastyear">Scorso anno</string>
+
+    <string name="call_stats_date_filter">Regola l\'intervallo di tempo</string>
+    <string name="call_stats_reset_filter">Resetta l\'intervallo di tempo</string>
+    <string name="call_stats_sort_by_duration">Ordina le chiamate per durata</string>
+    <string name="call_stats_sort_by_count">Ordina le chiamate per numero di chiamate</string>
+
+    <string name="menu_add_to_blacklist">Aggiungi alla blacklist</string>
+    <string name="toast_added_to_blacklist">%s aggiunto alla blacklist.</string>
+</resources>
