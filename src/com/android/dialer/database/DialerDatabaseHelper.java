@@ -65,6 +65,7 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
     private static final Object mLock = new Object();
     private static final AtomicBoolean sInUpdate = new AtomicBoolean(false);
     private final Context mContext;
+    private final String[] mArgs1 = new String[1];
 
     /**
      * SmartDial DB version ranges:
@@ -72,7 +73,7 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
      *   0-98   KeyLimePie
      * </pre>
      */
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 70004;
     public static final String DATABASE_NAME = "dialer.db";
 
     /**
@@ -91,6 +92,8 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
         static final String PREFIX_TABLE = "prefix_table";
         /** Database properties for internal use */
         static final String PROPERTIES = "properties";
+        /** Cached contacts for Google number lookup */
+        static final String CACHED_CONTACTS = "cached_number_contacts";
     }
 
     public interface SmartDialDbColumns {
@@ -118,6 +121,21 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
     public interface PropertiesColumns {
         String PROPERTY_KEY = "property_key";
         String PROPERTY_VALUE = "property_value";
+    }
+
+    public interface CachedContactsColumns {
+        static final String NORMALIZED_NUMBER = "normalized_number";
+        static final String NUMBER = "number";
+        static final String PHONE_TYPE = "phone_type";
+        static final String PHONE_LABEL = "phone_label";
+        static final String HAS_PHOTO = "has_photo";
+        static final String HAS_THUMBNAIL = "has_thumbnail";
+        static final String PHOTO_URI = "photo_uri";
+        static final String TIME_LAST_UPDATED = "time_last_updated";
+        static final String SOURCE_NAME = "source_name";
+        static final String SOURCE_TYPE = "source_type";
+        static final String SOURCE_ID = "source_id";
+        static final String LOOKUP_KEY = "lookup_key";
     }
 
     /** Query options for querying the contact database.*/
@@ -180,6 +198,35 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
         /** Selects only rows that have been deleted after a certain time stamp.*/
         public static final String SELECT_UPDATED_CLAUSE =
                 ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP + " > ?";
+    }
+
+    /** Query options for querying the cache database */
+    public interface CachedNumberQuery {
+        static final String[] PROJECTION = new String[] {
+            SmartDialDbColumns.DISPLAY_NAME_PRIMARY, // 0
+            CachedContactsColumns.HAS_PHOTO,         // 1
+            CachedContactsColumns.HAS_THUMBNAIL,     // 2
+            CachedContactsColumns.PHOTO_URI,         // 3
+            CachedContactsColumns.NUMBER,            // 4
+            CachedContactsColumns.PHONE_TYPE,        // 5
+            CachedContactsColumns.PHONE_LABEL,       // 6
+            CachedContactsColumns.SOURCE_NAME,       // 7
+            CachedContactsColumns.SOURCE_TYPE,       // 8
+            CachedContactsColumns.SOURCE_ID,         // 9
+            CachedContactsColumns.LOOKUP_KEY         // 10
+        };
+
+        static final int CACHE_DISPLAY_NAME = 0;
+        static final int CACHE_HAS_PHOTO = 1;
+        static final int CACHE_HAS_THUMBNAIL = 2;
+        static final int CACHE_PHOTO_URI = 3;
+        static final int CACHE_NUMBER = 4;
+        static final int CACHE_PHONE_TYPE = 5;
+        static final int CACHE_PHONE_LABEL = 6;
+        static final int CACHE_SOURCE_NAME = 7;
+        static final int CACHE_SOURCE_TYPE = 8;
+        static final int CACHE_SOURCE_ID = 9;
+        static final int CACHE_LOOKUP_KEY = 10;
     }
 
     /**
@@ -371,6 +418,26 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
                 PropertiesColumns.PROPERTY_VALUE + " TEXT " +
                 ");");
 
+        db.execSQL("CREATE TABLE " + Tables.CACHED_CONTACTS + " (" +
+                CachedContactsColumns.NORMALIZED_NUMBER + " TEXT PRIMARY KEY NOT NULL, " +
+                CachedContactsColumns.NUMBER + " TEXT NOT NULL, " +
+                CachedContactsColumns.PHONE_TYPE + " INTEGER DEFAULT 0, " +
+                CachedContactsColumns.PHONE_LABEL + " TEXT,display_name TEXT, " +
+                CachedContactsColumns.HAS_PHOTO + " INTEGER DEFAULT 0, " +
+                CachedContactsColumns.HAS_THUMBNAIL + " INTEGER DEFAULT 0, " +
+                CachedContactsColumns.PHOTO_URI + " TEXT, " +
+                CachedContactsColumns.TIME_LAST_UPDATED + " LONG NOT NULL, " +
+                CachedContactsColumns.SOURCE_NAME + " TEXT, " +
+                CachedContactsColumns.SOURCE_TYPE + " INTEGER DEFAULT 0, " +
+                CachedContactsColumns.SOURCE_ID + " TEXT, " +
+                CachedContactsColumns.LOOKUP_KEY + " TEXT" +
+        ");");
+
+        db.execSQL("CREATE INDEX " + "cached_number_index" +
+                " ON " + Tables.CACHED_CONTACTS + " (" +
+                CachedContactsColumns.NORMALIZED_NUMBER +
+        ");");
+
         setProperty(db, DATABASE_VERSION_PROPERTY, String.valueOf(DATABASE_VERSION));
         resetSmartDialLastUpdatedTime();
     }
@@ -379,6 +446,7 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + Tables.PREFIX_TABLE);
         db.execSQL("DROP TABLE IF EXISTS " + Tables.SMARTDIAL_TABLE);
         db.execSQL("DROP TABLE IF EXISTS " + Tables.PROPERTIES);
+        db.execSQL("DROP TABLE IF EXISTS " + Tables.CACHED_CONTACTS);
     }
 
     @Override
@@ -394,7 +462,10 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
             Log.e(TAG, "Malformed database version..recreating database");
         }
 
-        if (oldVersion < 4) {
+        int curVer = 4;
+        int base = 70000;
+        if (oldVersion <= curVer
+                || (oldVersion >= base && oldVersion < base + curVer)) {
             setupTables(db);
             return;
         }
@@ -971,5 +1042,29 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
             cursor.close();
         }
         return result;
+    }
+
+    // Cached contacts database
+
+    public void prune() {
+        prune(2592000000L); // 30 days: 30 * 24 * 60 * 60 * 1000
+    }
+
+    public void prune(long timestamp) {
+        mArgs1[0] = Long.toString(System.currentTimeMillis() - timestamp);
+        getWritableDatabase().execSQL(
+                "DELETE FROM " + Tables.CACHED_CONTACTS + " WHERE " +
+                CachedContactsColumns.TIME_LAST_UPDATED + "<?", mArgs1);
+    }
+
+    public void purgeAll() {
+        getWritableDatabase().execSQL("DELETE FROM " + Tables.CACHED_CONTACTS);
+    }
+
+    public void purgeSource(int type) {
+        mArgs1[0] = Integer.toString(type);
+        getWritableDatabase().execSQL(
+                "DELETE FROM " + Tables.CACHED_CONTACTS + " WHERE " +
+                CachedContactsColumns.SOURCE_TYPE + "=?", mArgs1);
     }
 }
