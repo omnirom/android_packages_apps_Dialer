@@ -19,23 +19,17 @@
 package com.android.dialer.omni;
 
 
-public interface IReverseLookupApi extends IRemoteApi {
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
-    /**
-     * Gets the country codes for which reverse lookup is provided.
-     * If the list is empty or null, all countries are supported.
-     *
-     * @return the supported country codes
-     */
-    public int[] getSupportedCountryCodes();
+public interface IReverseLookupApi extends IRemoteApi {
 
     /**
      * Fetches and returns a named Place with the provided phone number.
      * This method is NOT asynchronous. Run it in a thread.
      *
-     * @param phoneNumber the number in {@link com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.E164} format
+     * @param phoneNumber the phone number
      * @return the first matching place
      */
-    public Place getNamedPlaceByNumber(String phoneNumber);
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber);
 
 }
