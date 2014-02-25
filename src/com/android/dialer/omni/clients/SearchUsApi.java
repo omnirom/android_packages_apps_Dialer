@@ -18,25 +18,26 @@
 
 package com.android.dialer.omni.clients;
 
-import java.net.URLEncoder;
-import java.util.Arrays;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import android.util.Log;
 
+import com.android.dialer.omni.IReverseLookupApi;
 import com.android.dialer.omni.Place;
 import com.android.dialer.omni.PlaceUtil;
-import com.android.dialer.omni.IReverseLookupApi;
+import com.android.i18n.phonenumbers.PhoneNumberUtil;
+import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
+
+import java.net.URLEncoder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class SearchUsApi implements IReverseLookupApi {
 
-    private final static String TAG = "SearchUsApi";
+    private final static String TAG = SearchUsApi.class.getSimpleName();
     private final static String QUERY_URL = "http://www.whitepages.com/search/ReversePhone?full_phone=";
 
-    private static final int[] SUPPORTED_COUNTRIES = { 1 };
+    // testNumber = "12069735100"
 
     @Override
     public String getApiProviderName() {
@@ -44,28 +45,50 @@ public class SearchUsApi implements IReverseLookupApi {
     }
 
     @Override
-    public int[] getSupportedCountryCodes() {
-        return SUPPORTED_COUNTRIES;
-    }
-
-    @Override
-    public Place getNamedPlaceByNumber(String phoneNumber) {
-        String encodedNumber = URLEncoder.encode(phoneNumber);
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
+        String normalizedNumber = PhoneNumberUtil.getInstance().format(phoneNumber,
+                PhoneNumberFormat.E164);
+        String encodedNumber = URLEncoder.encode(normalizedNumber);
         Place place = null;
 
         try {
             String html = new String(PlaceUtil.getRequest(QUERY_URL + encodedNumber));
 
-            Pattern regex = Pattern.compile("<a.*?data-gaaction=\"associated_0\".*?>(.*?)<.*?</a>",
+            Pattern regex = Pattern.compile(
+                    "<a\\s.*?data-gaaction=\"associated_0\".*?>(.*?)</a>",
                     Pattern.DOTALL);
             Matcher matcher = regex.matcher(html);
 
             if (matcher.find()) {
-                String name = matcher.group(1).trim();
-
                 place = new Place();
-                place.setName(name);
-                place.setPhoneNumber(phoneNumber);
+
+                String associated = matcher.group(1);
+
+                regex = Pattern.compile("(.*?)<", Pattern.DOTALL);
+                matcher = regex.matcher(associated);
+                matcher.find();
+                place.name = matcher.group(1).trim();
+
+                regex = Pattern.compile(">\\s*Business\\s*<", Pattern.DOTALL);
+                matcher = regex.matcher(associated);
+                place.isBusiness = matcher.find();
+
+                regex = Pattern.compile(
+                        "<span\\s.*?class=\".*?address-primary.*?\".*?>(.*?)</span>",
+                        Pattern.DOTALL);
+                matcher = regex.matcher(html);
+                if (matcher.find()) {
+                    place.street = matcher.group(1).trim();
+                }
+
+                regex = Pattern.compile(
+                        "<span\\s.*?class=\".*?address-location.*?\".*?>(.*?)\\s+(\\S*?)</span>",
+                        Pattern.DOTALL);
+                matcher = regex.matcher(html);
+                if (matcher.find()) {
+                    place.city = matcher.group(1).trim();
+                    place.postalCode = matcher.group(2).trim();
+                }
             } else {
                 Log.w(TAG, "Regex matched nothing!");
             }

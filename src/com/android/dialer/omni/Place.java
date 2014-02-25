@@ -19,78 +19,118 @@
 package com.android.dialer.omni;
 
 
+import android.net.Uri;
+
+import com.google.common.base.Objects;
+
+
 public class Place {
 
-    // Latitude of the place
-    private double latitude;
+    public static final String LATITUDE = "latitude";
+    public static final String LONGITUDE = "longitude";
+    public static final String PHONE_NUMBER = "phone_number";
+    public static final String NORMALIZED_NUMBER = "normalized_number";
+    public static final String PHONE_TYPE = "phone_type";
+    public static final String IS_BUSINESS = "is_business";
+    public static final String NAME = "name";
+    public static final String STREET = "street";
+    public static final String POSTAL_CODE = "postal_code";
+    public static final String CITY = "city";
+    public static final String EMAIL = "email";
+    public static final String WEBSITE = "website";
+    public static final String SOURCE = "source";
 
-    // Longitude of the place
-    private double longitude;
+    public static Place EMPTY = new Place();
 
-    // Phone number of the place
-    private String phoneNumber;
-
-    // Name of the Place
-    private String name;
-
-    /**
-     * @return the latitude
-     */
-    public double getLatitude() {
-        return latitude;
+    public static boolean isEmpty(Place place) {
+        return place == null || place == EMPTY;
     }
 
     /**
-     * @param latitude
-     *            the latitude to set
-     */
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
+     * Latitude of the place
+      */
+    public double latitude;
 
     /**
-     * @return the longitude
+     * Longitude of the place
      */
-    public double getLongitude() {
-        return longitude;
-    }
+    public double longitude;
 
     /**
-     * @param longitude
-     *            the longitude to set
+     * Phone number of the place
      */
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
+    public String phoneNumber;
 
     /**
-     * @return the phoneNumber
+     * Normalized number (E164)
      */
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
+    public String normalizedNumber;
 
     /**
-     * @param phoneNumber
-     *            the phoneNumber to set
+     * Type of the phone, e.g. home or mobile
      */
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
+    public int phoneType;
 
     /**
-     * @return the name
+     * Is place business or private
      */
-    public String getName() {
-        return name;
-    }
+    public boolean isBusiness;
 
     /**
-     * @param name
-     *            the name to set
+     * Name of the place
      */
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String name;
 
+    /**
+     * Street of the place
+     */
+    public String street;
+
+    /**
+     * Postal code of the place
+     */
+    public String postalCode;
+
+    /**
+     * Name of the city
+     */
+    public String city;
+
+    /**
+     * Email address
+     */
+    public String email;
+
+    /**
+     * Website
+     */
+    public String website;
+
+    /**
+     * Uri of the image
+     */
+    public Uri imageUri;
+
+    /**
+     * The provider of this place
+     */
+    public String source;
+
+    @Override
+    public String toString() {
+        Objects.ToStringHelper toStringHelper = Objects.toStringHelper(this);
+        toStringHelper.add("name", name);
+        toStringHelper.add("phoneNumber", phoneNumber);
+        toStringHelper.add("normalizedNumber", normalizedNumber);
+        toStringHelper.add("street", street);
+        toStringHelper.add("postalCode", postalCode);
+        toStringHelper.add("city", city);
+        toStringHelper.add("latitude", latitude);
+        toStringHelper.add("longitude", longitude);
+        toStringHelper.add("email", email);
+        toStringHelper.add("website", website);
+        toStringHelper.add("imageUri", imageUri);
+        toStringHelper.add("source", source);
+        return toStringHelper.toString();
+    }
 }

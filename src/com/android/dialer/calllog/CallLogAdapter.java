@@ -249,7 +249,7 @@ public class CallLogAdapter extends GroupingListAdapter
 
         // Lookup contacts with this number
         final ContactInfo info = mAdapterHelper.lookupContact(
-        	    number, numberPresentation, countryIso, cachedContactInfo);
+                number, numberPresentation, countryIso, cachedContactInfo);
 
         final Uri lookupUri = info.lookupUri;
         final String name = info.name;
