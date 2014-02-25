@@ -314,5 +314,9 @@
             </intent-filter>
         </receiver>
 
+        <provider android:name=".omni.CachedPlacesProvider"
+            android:authorities="com.android.dialer.omni.cachedplaces"
+            android:exported="false" />
+
     </application>
 </manifest>
