@@ -15,5 +15,10 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-     <string name="nearby_places">Nearby places</string>
+    <string name="nearby_places">Nearby places</string>
+    <string name="nearby_places_distance">%1$.1f km away</string>
+    <string name="recentCalls_reverseLookup">Reverse lookup</string>
+    <string name="toast_reverse_lookup">Searching for %1$s on %2$s...</string>
+    <string name="toast_reverse_lookup_failed">No place found.</string>
+    <string name="toast_reverse_lookup_finished">Reverse lookup finished.</string>
 </resources>

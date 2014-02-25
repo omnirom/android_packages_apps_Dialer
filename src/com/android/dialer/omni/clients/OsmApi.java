@@ -18,35 +18,30 @@
 
 package com.android.dialer.omni.clients;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.android.dialer.omni.IPlacesAroundApi;
+import com.android.dialer.omni.IReverseLookupApi;
+import com.android.dialer.omni.Place;
+import com.android.dialer.omni.PlaceUtil;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.android.dialer.omni.Place;
-import com.android.dialer.omni.IRemoteApi;
-import com.android.dialer.omni.PlaceUtil;
-import com.android.dialer.omni.IPlacesAroundApi;
-import com.android.dialer.omni.IReverseLookupApi;
-
-import com.android.i18n.phonenumbers.NumberParseException;
-import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
-import com.android.i18n.phonenumbers.PhoneNumberUtil;
-import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
-
-import android.util.Log;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
  * Class to interact with OpenStreetMaps API (Overpass API)
  */
 public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
-    private final static String TAG = "OsmApi";
+    private final static String TAG = OsmApi.class.getSimpleName();
 
     // -----
     // Constants
@@ -66,8 +61,23 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
     // Source from which the place was put on OSM
     private final static String TAG_SOURCE = "source";
 
+    // email address of the place
+    private final static String TAG_EMAIL = "email";
+
     // Website of the place
     private final static String TAG_WEBSITE = "website";
+
+    // Street of the place
+    private final static String TAG_STREET = "addr:street";
+
+    // House number of the place
+    private final static String TAG_HOUSE_NUMBER = "addr:housenumber";
+
+    // postal code of the place
+    private final static String TAG_POSTAL_CODE = "addr:postcode";
+
+    // City where the place is
+    private final static String TAG_CITY = "addr:city";
 
     // Opening hours
     private final static String TAG_OPENING_HOURS = "opening_hours";
@@ -96,11 +106,6 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
         return "OpenStreetMap";
     }
 
-    @Override
-    public int[] getSupportedCountryCodes() {
-        return null;
-    }
-
     /**
      * Fetches and returns a list of named Places around the provided latitude and
      * longitude parameters. The bounding box is calculated from lat-distance, lon-distance
@@ -110,21 +115,16 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
      * @param name Name to search
      * @param lat Latitude of the point to search around
      * @param lon Longitude of the point to search around
-     * @param distance Max distance (polar coordinates)
+     * @param distance Max distance in meters
      * @return the list of matching places
      */
     @Override
-    public List<Place> getNamedPlacesAround(String name, double lat, double lon, double distance) {
+    public List<Place> getNamedPlacesAround(String name, double lat, double lon, long distance) {
         List<Place> places;
 
         if (DEBUG) Log.d(TAG, "Getting places named " + name);
 
-        double latStart =   lat - distance / 2.0;
-        double latEnd =     lat + distance / 2.0;
-        double lonStart =   lon - distance / 2.0;
-        double lonEnd =     lon + distance / 2.0;
-
-        // The OSM API doesn't support case-insentive searches, but does support RegEx. So
+        // The OSM API doesn't support case-insensitive searches, but does support RegEx. So
         // we hack around a bit.
         String finalName = "";
         for (int i = 0; i < name.length(); i++) {
@@ -134,7 +134,7 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
 
         // Build request data
         String request = "[out:json];node[\"name\"~\"" + finalName + "\"][\"phone\"]" +
-            "(" + latStart + "," + lonStart + "," + latEnd + "," + lonEnd + ");out body;";
+            "(around:" + distance + "," + lat + "," + lon + ");out body;";
 
         try {
             places = getPlaces(request);
@@ -153,32 +153,28 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
      * Fetches and returns a named Place with the provided phone number.
      * This method is NOT asynchronous. Run it in a thread.
      *
-     * @param phoneNumber the number in {@link com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.E164} format
+     * @param phoneNumber the phone number
      * @return the first matching place
      */
     @Override
-    public Place getNamedPlaceByNumber(String phoneNumber) {
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
         if (DEBUG) Log.d(TAG, "Getting place for " + phoneNumber);
         Place place = null;
 
-        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
-        try {
-            phoneNumber = Long.toString(phoneUtil.parse(phoneNumber, null).getNationalNumber());
-        } catch (NumberParseException e) {
-            // this should never happen, or it's a special number. No need to lookup
-            // for those then.
-            Log.e(TAG, "Cannot parse this phone number (" + phoneNumber + ")", e);
-            return null;
-        }
+        String nationalNumber = Long.toString(phoneNumber.getNationalNumber());
+        String countryCode = Long.toString(phoneNumber.getCountryCode());
 
         // build the reg exp for number look up:
         // ignore additional ;-separated numbers before and after: "^(.*;)?" and "(;.*)?$"
-        // allow + or 00 in before the country code: "^(\\+)?[0-9]*"
+        // allow + or 00 in before the country code: "^(\\+)?" + countryCode
+        //     or allow national number without country code but with leading "0"
         // allow spaces, - and / between digits: "[^;0-9]*"
-        String regExp = "^(\\\\+)?[0-9]*";
-        for (int i = 0; i < phoneNumber.length(); i++) {
-            char c = phoneNumber.charAt(i);
-            regExp += c + "[^;0-9]*";
+        String ignoredChars = "[^;0-9]*";
+        String regExp = "^(.*;)?" + ignoredChars;
+        regExp += "((\\\\+|00)" + countryCode + "|0)" + ignoredChars;
+        for (int i = 0; i < nationalNumber.length(); i++) {
+            char c = nationalNumber.charAt(i);
+            regExp += c + ignoredChars;
         }
         regExp += "(;.*)?$";
 
@@ -210,6 +206,9 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
     private List<Place> getPlaces(String request) throws IOException, JSONException {
         List<Place> places = new ArrayList<Place>();
         // Post and parse request
+        if (DEBUG) {
+            Log.d(TAG, "getPlaces: request=" + request);
+        }
         JSONObject obj = PlaceUtil.postJsonRequest(mProviderUrl, "data=" + URLEncoder.encode(request));
         JSONArray elements = obj.getJSONArray("elements");
 
@@ -226,8 +225,6 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
             for (int j = 0; j < tagNames.length(); j++) {
                 String tagName = tagNames.getString(j);
                 String tagValue = tags.getString(tagName);
-
-                // TODO: TAG_PHONE can contain multiple numbers "number1;number2"
                 putTag(place, tagName, tagValue);
             }
 
@@ -240,11 +237,33 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
         if (TAG_NAME.equalsIgnoreCase(tagName)) {
             place.setName(tagValue);
         } else if (TAG_PHONE.equalsIgnoreCase(tagName)) {
+            // TODO: TAG_PHONE can contain multiple numbers "number1;number2"
             place.setPhoneNumber(tagValue);
+        } else if (TAG_EMAIL.equalsIgnoreCase(tagName)) {
+            place.setEmail(tagValue);
+        } else if (TAG_WEBSITE.equalsIgnoreCase(tagName)) {
+            place.setWebsite(tagValue);
+        } else if (TAG_STREET.equalsIgnoreCase(tagName)) {
+            // put street and house number together in Place.street
+            String oldValue = "";
+            if (!TextUtils.isEmpty(place.getStreet())) {
+                oldValue = " " + place.getStreet();
+            }
+            place.setStreet(tagValue + oldValue);
+        } else if (TAG_HOUSE_NUMBER.equalsIgnoreCase(tagName)) {
+            // put street and house number together in Place.street
+            String oldValue = "";
+            if (!TextUtils.isEmpty(place.getStreet())) {
+                oldValue = place.getStreet() + " ";
+            }
+            place.setStreet(oldValue + tagValue);
+        } else if (TAG_POSTAL_CODE.equalsIgnoreCase(tagName)) {
+            place.setPostalCode(tagValue);
+        } else if (TAG_CITY.equalsIgnoreCase(tagName)) {
+            place.setCity(tagValue);
         } else if (DEBUG) {
             Log.d(TAG, "Tag " + tagName + " not supported");
         }
-
     }
 
 }

@@ -25,16 +25,15 @@ public interface IPlacesAroundApi extends IRemoteApi {
 
     /**
      * Fetches and returns a list of named Places around the provided latitude and
-     * longitude parameters. The bounding box is calculated from lat-distance, lon-distance
-     * to lat+distance, lon+distance.
+     * longitude parameters.
      * This method is NOT asynchronous. Run it in a thread.
      *
      * @param name The name to search
      * @param lat Latitude of the point to search around
      * @param lon Longitude of the point to search around
-     * @param distance Max distance (polar coordinates)
+     * @param distance Max distance in meters
      * @return the list of matching places
      */
-    public List<Place> getNamedPlacesAround(String name, double lat, double lon, double distance);
+    public List<Place> getNamedPlacesAround(String name, double lat, double lon, long distance);
 
 }

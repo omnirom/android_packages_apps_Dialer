@@ -26,20 +26,22 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.util.Log;
 
 import com.android.dialer.omni.Place;
 import com.android.dialer.omni.PlaceUtil;
 import com.android.dialer.omni.IReverseLookupApi;
+import com.android.i18n.phonenumbers.PhoneNumberUtil;
+import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 
 public class SearchChApi implements IReverseLookupApi {
 
-    private final static String TAG = "SearchChApi";
+    private final static String TAG = SearchChApi.class.getSimpleName();
     private final static String QUERY_URL = "http://tel.search.ch/?tel=";
     // private final static String XPATH_NAME = ".//*[@id='telresultslist']/tbody/tr[1]/td/div[2]/table/tbody/tr/td[2]/div/table/tbody/tr[1]/td[1]/h5/a";
-
-    private static final int[] SUPPORTED_COUNTRIES = { 41 };
 
     @Override
     public String getApiProviderName() {
@@ -47,13 +49,10 @@ public class SearchChApi implements IReverseLookupApi {
     }
 
     @Override
-    public int[] getSupportedCountryCodes() {
-        return SUPPORTED_COUNTRIES;
-    }
-
-    @Override
-    public Place getNamedPlaceByNumber(String phoneNumber) {
-        String encodedNumber = URLEncoder.encode(phoneNumber);
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
+        String normalizedNumber = PhoneNumberUtil.getInstance().format(phoneNumber,
+                PhoneNumberFormat.E164);
+        String encodedNumber = URLEncoder.encode(normalizedNumber);
         HtmlDocumentHandler htmlDocumentHandler = new HtmlDocumentHandler();
         Place place = null;
 
@@ -61,9 +60,20 @@ public class SearchChApi implements IReverseLookupApi {
             PlaceUtil.getRequest(QUERY_URL + encodedNumber, htmlDocumentHandler);
             if (htmlDocumentHandler.getName() != null) {
                 place = new Place();
-                // TODO: get business
                 place.setName(htmlDocumentHandler.getName());
-                place.setPhoneNumber(phoneNumber);
+                place.setPhoneNumber(normalizedNumber);
+                place.setStreet(htmlDocumentHandler.getAddress());
+                place.setPostalCode(htmlDocumentHandler.getPostalCode());
+                String city = htmlDocumentHandler.getCity();
+                if (htmlDocumentHandler.getRegion() != null) {
+                    city += "/" + htmlDocumentHandler.getRegion();
+                }
+                place.setCity(city);
+                int phoneType = htmlDocumentHandler.isBusiness()
+                        ? Phone.TYPE_WORK
+                        : Phone.TYPE_HOME;
+                place.setPhoneType(phoneType);
+
             }
         } catch (Exception e) {
             Log.e(TAG, "Unable to do reverse lookup", e);
@@ -74,12 +84,27 @@ public class SearchChApi implements IReverseLookupApi {
 
     public class HtmlDocumentHandler implements ContentHandler {
         private String mName;
+        private String mAddress;
+        private String mPostalCode;
+        private String mCity;
+        private String mRegion;
+        private boolean mBusiness;
         private String mLastElement;
         private Attributes mLastElementAtts;
 
         public String getName() {
             return mName;
         }
+
+        public String getAddress() { return mAddress; }
+
+        public String getPostalCode() { return mPostalCode; }
+
+        public String getCity() { return mCity; }
+
+        public String getRegion() { return mRegion; }
+
+        public Boolean isBusiness() { return mBusiness; }
 
         @Override
         public void startElement(String uri, String localName, String qName,
@@ -93,17 +118,51 @@ public class SearchChApi implements IReverseLookupApi {
                 throws SAXException {
             if (mName == null
                     && length > 0
-                    && "a".equalsIgnoreCase(mLastElement)
-                    && mLastElementAtts.getValue("class") != null
-                    && Arrays.asList(
-                            mLastElementAtts.getValue("class").toLowerCase()
-                                    .split(" ")).contains("fn")) {
-                String name = new String(ch, start, length);
-                name = name.trim();
-                if (!name.isEmpty()) {
-                    mName = name;
-                }
+                    && elementIs("a")
+                    && attributeContainsValue("class", "fn")) {
+                mName = getValue(ch, start, length);
+                mBusiness = attributeContainsValue("class", "org");
+            } else if (mAddress == null
+                    && length > 0
+                    && elementIs("span")
+                    && attributeContainsValue("class", "street-address")) {
+                mAddress = getValue(ch, start, length);
+            } else if (mPostalCode == null
+                    && length > 0
+                    && elementIs("span")
+                    && attributeContainsValue("class", "postal-code")) {
+                mPostalCode = getValue(ch, start, length);
+            } else if (mCity == null
+                    && length > 0
+                    && elementIs("span")
+                    && attributeContainsValue("class", "locality")) {
+                mCity = getValue(ch, start, length);
+            } else if (mRegion == null
+                    && length > 0
+                    && elementIs("span")
+                    && attributeContainsValue("class", "region")) {
+                mRegion = getValue(ch, start, length);
             }
+        }
+
+        private boolean elementIs(String element) {
+            return element.equalsIgnoreCase(mLastElement);
+        }
+
+        private boolean attributeContainsValue(String attribute, String value) {
+            return mLastElementAtts.getValue(attribute) != null
+                    && Arrays.asList(
+                            mLastElementAtts.getValue(attribute).toLowerCase()
+                                    .split(" ")).contains(value);
+        }
+
+        private String getValue(char[] ch, int start, int length) {
+            String value = new String(ch, start, length);
+            value = value.trim();
+            if (value.isEmpty()) {
+                return null;
+            }
+            return value;
         }
 
         @Override
