@@ -2,26 +2,26 @@ package com.android.dialer.list;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
-import android.provider.Settings;
 import android.os.Handler;
+import android.provider.Settings;
 import android.telephony.PhoneNumberUtils;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-
-import java.util.List;
+import android.widget.QuickContactBadge;
 
 import com.android.contacts.common.GeoUtil;
 import com.android.contacts.common.list.ContactListItemView;
 import com.android.contacts.common.list.PhoneNumberListAdapter;
-import com.android.dialer.omni.Place;
-import com.android.dialer.omni.IRemoteApi;
-import com.android.dialer.omni.IPlacesAroundApi;
-import com.android.dialer.omni.clients.OsmApi;
 import com.android.dialer.R;
+import com.android.dialer.omni.Place;
+import com.android.dialer.omni.PlaceUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
 
 /**
  * {@link PhoneNumberListAdapter} with the following added shortcuts, that are displayed as list
@@ -34,12 +34,13 @@ import com.android.dialer.R;
  */
 public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
     private final static String TAG = "DialerPhoneNumberListAdapter";
+    private final static boolean DEBUG = false;
 
     private String mFormattedQueryString;
     private String mCountryIso;
 
-    private IPlacesAroundApi mPlacesAroundApi;
     private List<Place> mPlacesList;
+    private List<Float> mPlacesDistanceList;
     private String mPreviousQuery;
     private Handler mHandler;
     private Thread mQueryThread;
@@ -61,6 +62,8 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
 
     private final boolean[] mShortcutEnabled = new boolean[SHORTCUT_COUNT];
 
+    private final static int MIN_SUGGESTIONS_QUERY_LEN = 3;
+
     public DialerPhoneNumberListAdapter(Context context) {
         super(context);
 
@@ -73,8 +76,6 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
 
         mHandler = new Handler();
 
-        // TODO: UI to select client
-        mPlacesAroundApi = new OsmApi();
         mEnableSuggestions = Settings.System.getInt(context.getContentResolver(),
             Settings.System.ENABLE_DIALER_SUGGESTIONS, 0) == 1;
     }
@@ -160,8 +161,8 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
 
     public String getSuggestionPhoneNumber(int position) {
         final int index = getSuggestionIndexFromPosition(position);
-        final String phoneNum = mPlacesList.get(index).getPhoneNumber();
-        return PhoneNumberUtils.convertAndStrip(phoneNum);
+        final String phoneNumber = mPlacesList.get(index).phoneNumber;
+        return PhoneNumberUtils.convertAndStrip(phoneNumber);
     }
 
     /**
@@ -229,6 +230,7 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
     private void assignSuggestionToView(ContactListItemView v, int suggestionIndex) {
         final Resources resources = getContext().getResources();
         final Place place = mPlacesList.get(suggestionIndex);
+        final Float distance = mPlacesDistanceList.get(suggestionIndex);
         if (mPreviousQuery != null) {
             v.setHighlightedPrefix(mPreviousQuery.toUpperCase());
         }
@@ -237,10 +239,22 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
         } else {
             v.setSectionHeader(null);
         }
-        v.setDrawableResource(R.drawable.list_item_avatar_bg, R.drawable.ic_phone_dk);
-        v.setDisplayName(place.getName());
-        v.setPhoneNumber(PhoneNumberUtils.formatNumber(PhoneNumberUtils.convertAndStrip(place.getPhoneNumber()), mCountryIso));
+
+        String name = place.name;
+        if (!TextUtils.isEmpty(place.source)) {
+            name += " (" + place.source + ")";
+        }
+        v.setDisplayName(name);
+        v.setPhoneNumber(PhoneNumberUtils.formatNumber(place.normalizedNumber, mCountryIso));
         v.setPhotoPosition(super.getPhotoPosition());
+
+        // round to 100 meters
+        double distanceInKM = Math.round(distance / 100.0) / 10.0;
+        v.setLabel(resources.getString(R.string.nearby_places_distance, distanceInKM));
+
+        QuickContactBadge quickContact = v.getQuickContact();
+        quickContact.assignContactUri(PlaceUtil.createTemporaryContactUri(mContext, place));
+        getPhotoLoader().loadPhoto(quickContact, place.imageUri, -1, false);
     }
 
     public void setShortcutEnabled(int shortcutType, boolean visible) {
@@ -261,7 +275,6 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
         mFormattedQueryString = PhoneNumberUtils.formatNumber(
                 PhoneNumberUtils.convertAndStrip(queryString), mCountryIso);
 
-
         if (mEnableSuggestions) {
             // Query api for nearby places with that name
             queryPlaces(queryString);
@@ -271,8 +284,25 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
     }
 
     public void queryPlaces(final String query) {
-        if (mPreviousQuery != null && query.equals(mPreviousQuery)) return;
-        mPreviousQuery = query;
+        final String trimmedQuery = query.trim();
+
+        synchronized (mQueryLock) {
+            if (mPreviousQuery != null && trimmedQuery.equals(mPreviousQuery)) {
+                if (DEBUG) {
+                    Log.d(TAG, "Already looking for \"" + trimmedQuery + "\", stopping now.");
+                }
+                return;
+            }
+
+            if (trimmedQuery.length() < MIN_SUGGESTIONS_QUERY_LEN) {
+                if (DEBUG) {
+                    Log.d(TAG, "Query \"" + trimmedQuery + "\" is too short (less than " + MIN_SUGGESTIONS_QUERY_LEN + " chars), stopping now.");
+                }
+                return;
+            }
+
+            mPreviousQuery = trimmedQuery;
+        }
 
         if (mQueryThread != null) {
             mQueryThread.interrupt();
@@ -281,38 +311,59 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
         mQueryThread = new Thread() {
             @Override
             public void run() {
-                final LocationManager locationManager = (LocationManager)
-                    mContext.getSystemService(Context.LOCATION_SERVICE);
-                List<String> providers = locationManager.getProviders(true);
-                Location l = null;
-
-                for (int i = providers.size()-1; i>=0; i--) {
-                    l = locationManager.getLastKnownLocation(providers.get(i));
-                    if (l != null) break;
+                if (DEBUG) {
+                    Log.d(TAG, "Starting lookup for places named like \"" + trimmedQuery + "\"");
                 }
 
-                double lat, lon;
+                // look for places 10 km around
+                int maxDistance = 10000;
+                List<Place> places = PlaceUtil.getNamedPlacesAround(mContext,
+                        trimmedQuery, maxDistance);
 
-                try {
-                    lat = l.getLatitude();
-                    lon = l.getLongitude();
-                } catch (NullPointerException e) {
+                if (places == null) {
                     Log.w(TAG, "Nearby search canceled as location data is unavailable.");
                     return;
+                } else if (DEBUG) {
+                    Log.d(TAG, "Found " + places.size() + " places named like \"" +
+                            trimmedQuery + "\"");
                 }
-                List<Place> places = mPlacesAroundApi.getNamedPlacesAround(query, lat, lon, 0.4);
+
+                // sort places by distance
+                double latitude = PlaceUtil.getLastLocation().getLatitude();
+                double longitude = PlaceUtil.getLastLocation().getLongitude();
+                TreeMap<Float, Place> placesMap = new TreeMap<Float, Place>();
+                float[] distanceFloat = new float[1];
+                for (Place place : places) {
+                    Location.distanceBetween(latitude, longitude,
+                            place.latitude, place.longitude, distanceFloat);
+                    float distance = distanceFloat[0];
+                    // for the highly unlikely case that there are two places with the same
+                    // distance, we increase the distance a bit
+                    while (placesMap.containsKey(distance)) {
+                        distance += Float.MIN_VALUE;
+                    }
+                    placesMap.put(distance, place);
+                }
 
                 if (isInterrupted()) {
-                    Log.i(TAG, "Cancelling current nearby search, superseeded by a newer one");
+                    Log.i(TAG, "Cancelling current nearby search, superseded by a newer one");
                     return;
                 }
 
                 synchronized (mQueryLock) {
-                    mPlacesList = places;
+                    mPlacesList = new ArrayList<Place>();
+                    mPlacesDistanceList = new ArrayList<Float>();
+                    for (Float distance : placesMap.keySet()) {
+                        mPlacesDistanceList.add(distance);
+                        mPlacesList.add(placesMap.get(distance));
+                    }
                 }
 
                 mHandler.post(new Runnable() {
                     public void run() {
+                        if (DEBUG) {
+                            Log.d(TAG, "Calling notifyDataSetChanged()");
+                        }
                         notifyDataSetChanged();
                     }
                 });
@@ -323,7 +374,7 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
         // after some time if the query string didn't change (otherwise
         // the previous request is cancelled).
         mHandler.removeCallbacks(mQueryKickerRunnable);
-        mHandler.postDelayed(mQueryKickerRunnable, 800);
+        mHandler.postDelayed(mQueryKickerRunnable, 1000);
     }
 
 }

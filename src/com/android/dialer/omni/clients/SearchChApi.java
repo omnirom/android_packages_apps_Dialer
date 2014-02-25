@@ -18,28 +18,31 @@
 
 package com.android.dialer.omni.clients;
 
-import java.net.URLEncoder;
-import java.util.Arrays;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.android.dialer.omni.IReverseLookupApi;
+import com.android.dialer.omni.Place;
+import com.android.dialer.omni.PlaceUtil;
+import com.android.i18n.phonenumbers.PhoneNumberUtil;
+import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
-import android.util.Log;
-
-import com.android.dialer.omni.Place;
-import com.android.dialer.omni.PlaceUtil;
-import com.android.dialer.omni.IReverseLookupApi;
+import java.net.URLEncoder;
+import java.util.Arrays;
 
 
 public class SearchChApi implements IReverseLookupApi {
 
-    private final static String TAG = "SearchChApi";
+    private final static String TAG = SearchChApi.class.getSimpleName();
     private final static String QUERY_URL = "http://tel.search.ch/?tel=";
     // private final static String XPATH_NAME = ".//*[@id='telresultslist']/tbody/tr[1]/td/div[2]/table/tbody/tr/td[2]/div/table/tbody/tr[1]/td[1]/h5/a";
-
-    private static final int[] SUPPORTED_COUNTRIES = { 41 };
 
     @Override
     public String getApiProviderName() {
@@ -47,23 +50,30 @@ public class SearchChApi implements IReverseLookupApi {
     }
 
     @Override
-    public int[] getSupportedCountryCodes() {
-        return SUPPORTED_COUNTRIES;
-    }
-
-    @Override
-    public Place getNamedPlaceByNumber(String phoneNumber) {
-        String encodedNumber = URLEncoder.encode(phoneNumber);
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
+        String normalizedNumber = PhoneNumberUtil.getInstance().format(phoneNumber,
+                PhoneNumberFormat.E164);
+        String encodedNumber = URLEncoder.encode(normalizedNumber);
         HtmlDocumentHandler htmlDocumentHandler = new HtmlDocumentHandler();
         Place place = null;
 
         try {
             PlaceUtil.getRequest(QUERY_URL + encodedNumber, htmlDocumentHandler);
-            if (htmlDocumentHandler.getName() != null) {
+            if (!TextUtils.isEmpty(htmlDocumentHandler.name)) {
                 place = new Place();
-                // TODO: get business
-                place.setName(htmlDocumentHandler.getName());
-                place.setPhoneNumber(phoneNumber);
+                place.name = htmlDocumentHandler.name;
+                place.phoneNumber = normalizedNumber;
+                place.street = htmlDocumentHandler.address;
+                place.postalCode = htmlDocumentHandler.postalCode;
+                String city = htmlDocumentHandler.city;
+                if (!TextUtils.isEmpty(htmlDocumentHandler.region)) {
+                    city += "/" + htmlDocumentHandler.region;
+                }
+                place.city = city;
+                place.phoneType = htmlDocumentHandler.isBusiness
+                        ? Phone.TYPE_WORK
+                        : Phone.TYPE_HOME;
+
             }
         } catch (Exception e) {
             Log.e(TAG, "Unable to do reverse lookup", e);
@@ -72,38 +82,71 @@ public class SearchChApi implements IReverseLookupApi {
         return place;
     }
 
-    public class HtmlDocumentHandler implements ContentHandler {
-        private String mName;
+    private class HtmlDocumentHandler implements ContentHandler {
         private String mLastElement;
-        private Attributes mLastElementAtts;
+        private Attributes mLastElementAttributes;
 
-        public String getName() {
-            return mName;
-        }
+        public String name;
+        public String address;
+        public String postalCode;
+        public String city;
+        public String region;
+        public boolean isBusiness;
 
         @Override
         public void startElement(String uri, String localName, String qName,
-                Attributes atts) throws SAXException {
+                Attributes attributes) throws SAXException {
             mLastElement = localName;
-            mLastElementAtts = atts;
+            mLastElementAttributes = attributes;
         }
 
         @Override
         public void characters(char[] ch, int start, int length)
                 throws SAXException {
-            if (mName == null
-                    && length > 0
-                    && "a".equalsIgnoreCase(mLastElement)
-                    && mLastElementAtts.getValue("class") != null
-                    && Arrays.asList(
-                            mLastElementAtts.getValue("class").toLowerCase()
-                                    .split(" ")).contains("fn")) {
-                String name = new String(ch, start, length);
-                name = name.trim();
-                if (!name.isEmpty()) {
-                    mName = name;
+            if (length > 0) {
+                if (name == null
+                        && elementIs("a")
+                        && attributeContainsValue("class", "fn")) {
+                    name = getValue(ch, start, length);
+                    isBusiness = attributeContainsValue("class", "org");
+                } else if (address == null
+                        && elementIs("span")
+                        && attributeContainsValue("class", "street-address")) {
+                    address = getValue(ch, start, length);
+                } else if (postalCode == null
+                        && elementIs("span")
+                        && attributeContainsValue("class", "postal-code")) {
+                    postalCode = getValue(ch, start, length);
+                } else if (city == null
+                        && elementIs("span")
+                        && attributeContainsValue("class", "locality")) {
+                    city = getValue(ch, start, length);
+                } else if (region == null
+                        && elementIs("span")
+                        && attributeContainsValue("class", "region")) {
+                    region = getValue(ch, start, length);
                 }
             }
+        }
+
+        private boolean elementIs(String element) {
+            return element.equalsIgnoreCase(mLastElement);
+        }
+
+        private boolean attributeContainsValue(String attribute, String value) {
+            return mLastElementAttributes.getValue(attribute) != null
+                    && Arrays.asList(
+                            mLastElementAttributes.getValue(attribute).toLowerCase()
+                                    .split(" ")).contains(value);
+        }
+
+        private String getValue(char[] ch, int start, int length) {
+            String value = new String(ch, start, length);
+            value = value.trim();
+            if (TextUtils.isEmpty(value)) {
+                return null;
+            }
+            return value;
         }
 
         @Override
@@ -147,5 +190,4 @@ public class SearchChApi implements IReverseLookupApi {
         }
 
     }
-
 }

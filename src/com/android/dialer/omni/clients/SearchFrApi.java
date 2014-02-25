@@ -18,76 +18,72 @@
 
 package com.android.dialer.omni.clients;
 
-import java.net.URLEncoder;
-import java.util.Arrays;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.dialer.omni.IReverseLookupApi;
 import com.android.dialer.omni.Place;
 import com.android.dialer.omni.PlaceUtil;
-import com.android.dialer.omni.IReverseLookupApi;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
+
+import org.json.JSONObject;
+
+import java.net.URLEncoder;
 
 
 public class SearchFrApi implements IReverseLookupApi {
 
-    private final static String TAG = "SearchFrApi";
+    private final static String TAG = SearchFrApi.class.getSimpleName();
     private final static String QUERY_URL = "http://www.recherche-inverse.com/ajax/xml-getinfo.php?mode=json&code&w=1&num=";
 
-    private static final int[] SUPPORTED_COUNTRIES = { 33 };
-    private String mCity = null;
+    // testNumber = "0033123456789";
 
     @Override
     public String getApiProviderName() {
-        // It looks better to show the city here, since the API provides it
-        if (mCity != null) {
-            return mCity;
-        } else {
-            return "recherche-inverse.com";
-        }
+        return "recherche-inverse.com";
     }
 
     @Override
-    public int[] getSupportedCountryCodes() {
-        return SUPPORTED_COUNTRIES;
-    }
-
-    @Override
-    public Place getNamedPlaceByNumber(String phoneNumber) {
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
         // This API requires us to have a national-formatted number
-        if (phoneNumber.startsWith("0033")) {
-            phoneNumber = phoneNumber.substring(4);
-            phoneNumber = "0" + phoneNumber;
-        } else if (phoneNumber.startsWith("+33")) {
-            phoneNumber = phoneNumber.substring(3);
-            phoneNumber = "0" + phoneNumber;
-        }
+        String nationalNumber = "0" + Long.toString(phoneNumber.getNationalNumber());
+        String encodedNumber = URLEncoder.encode(nationalNumber);
 
-        // Trim out spaces as well
-        phoneNumber = phoneNumber.replaceAll(" ", "");
-
-        String encodedNumber = URLEncoder.encode(phoneNumber);
         Place place = null;
 
-        if (DEBUG) Log.d(TAG, "Looking for: " + QUERY_URL + phoneNumber);
+        if (DEBUG) Log.d(TAG, "Looking for: " + QUERY_URL + encodedNumber);
 
         try {
-            JSONObject obj = PlaceUtil.getJsonRequest(QUERY_URL + phoneNumber);
+            JSONObject obj = PlaceUtil.getJSONObjectRequest(QUERY_URL + encodedNumber);
 
             if (obj.getInt("nb") > 0) {
                 JSONObject inverse = obj.getJSONObject("inverse");
 
-                if (inverse.getString("NNAT").replaceAll(" ", "").equals(phoneNumber)) {
+                if (inverse.getString("NNAT").replaceAll(" ", "").equals(nationalNumber)) {
                     // Number looks good!
                     place = new Place();
-                    place.setName(inverse.getString("NOM"));
-                    place.setPhoneNumber(phoneNumber);
-                    mCity = inverse.getString("LIB_SNT_LOCP");
+                    place.name = inverse.getString("NOM");
+                    place.phoneNumber = nationalNumber;
+                    if (inverse.has("ADRESSE")) {
+                        place.street = inverse.getString("ADRESSE");
+                    }
+                    if (TextUtils.isEmpty(place.street)
+                            && inverse.has("NOMV")) {
+                        place.street = inverse.getString("NOMV");
+                    }
+                    if (inverse.has("CP")) {
+                        place.postalCode = inverse.getString("CP");
+                    }
+                    if (inverse.has("LIB_SNT_LOCP")) {
+                        place.city = inverse.getString("LIB_SNT_LOCP");
+                    }
+                    if (TextUtils.isEmpty(place.city)
+                            && inverse.has("STRDEP")) {
+                        place.city = inverse.getString("STRDEP");
+                    }
                 } else {
                     Log.e(TAG, "The API returned informations for "
-                            + inverse.get("NNAT") + " instead of " + phoneNumber + "!");
+                            + inverse.get("NNAT") + " instead of " + nationalNumber + "!");
                 }
             } else {
                 Log.d(TAG, "No directory entry for that number");

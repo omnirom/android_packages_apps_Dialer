@@ -19,78 +19,156 @@
 package com.android.dialer.omni;
 
 
+import android.net.Uri;
+import android.text.TextUtils;
+
+import com.google.common.base.Objects;
+
+
 public class Place {
 
-    // Latitude of the place
-    private double latitude;
+    public static final String LATITUDE = "latitude";
+    public static final String LONGITUDE = "longitude";
+    public static final String PHONE_NUMBER = "phone_number";
+    public static final String NORMALIZED_NUMBER = "normalized_number";
+    public static final String PHONE_TYPE = "phone_type";
+    public static final String IS_BUSINESS = "is_business";
+    public static final String NAME = "name";
+    public static final String ADDRESS = "address";
+    public static final String STREET = "street";
+    public static final String POSTAL_CODE = "postal_code";
+    public static final String CITY = "city";
+    public static final String EMAIL = "email";
+    public static final String WEBSITE = "website";
+    public static final String SOURCE = "source";
 
-    // Longitude of the place
-    private double longitude;
+    public static Place EMPTY = new Place();
 
-    // Phone number of the place
-    private String phoneNumber;
-
-    // Name of the Place
-    private String name;
-
-    /**
-     * @return the latitude
-     */
-    public double getLatitude() {
-        return latitude;
+    public static boolean isEmpty(Place place) {
+        return place == null || place == EMPTY;
     }
 
     /**
-     * @param latitude
-     *            the latitude to set
+     * Latitude of the place
+      */
+    public double latitude;
+
+    /**
+     * Longitude of the place
      */
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
+    public double longitude;
+
+    /**
+     * Phone number of the place
+     */
+    public String phoneNumber;
+
+    /**
+     * Normalized number (E164)
+     */
+    public String normalizedNumber;
+
+    /**
+     * Type of the phone, e.g. home or mobile
+     */
+    public int phoneType;
+
+    /**
+     * Is place business or private
+     */
+    public boolean isBusiness;
+
+    /**
+     * Name of the place
+     */
+    public String name;
+
+    /**
+     * Formatted address is either {@link address},
+     * or, if empty, "{@link street}, {@link postalCode} {@link city}"
+     * @return
+     */
+    public String getFormattedAddress() {
+        String formattedAddress = address;
+        if (TextUtils.isEmpty(formattedAddress)) {
+            // format address as "%street, %postalCode %city"
+            formattedAddress = "";
+            if (!TextUtils.isEmpty(city)) {
+                formattedAddress = city;
+            }
+            if (!TextUtils.isEmpty(postalCode)) {
+                if (!TextUtils.isEmpty(formattedAddress)) {
+                    formattedAddress = " " + formattedAddress;
+                }
+                formattedAddress = postalCode + formattedAddress;
+            }
+            if (!TextUtils.isEmpty(street)) {
+                if (!TextUtils.isEmpty(formattedAddress)) {
+                    formattedAddress = ", " + formattedAddress;
+                }
+                formattedAddress = street + formattedAddress;
+            }
+        }
+        return formattedAddress;
     }
 
     /**
-     * @return the longitude
+     * The full, unstructured postal address. <i>This field must be
+     * consistent with any structured data.</i>
      */
-    public double getLongitude() {
-        return longitude;
-    }
+    public String address;
 
     /**
-     * @param longitude
-     *            the longitude to set
+     * Street of the place
      */
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
+    public String street;
 
     /**
-     * @return the phoneNumber
+     * Postal code of the place
      */
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
+    public String postalCode;
 
     /**
-     * @param phoneNumber
-     *            the phoneNumber to set
+     * Name of the city
      */
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
+    public String city;
 
     /**
-     * @return the name
+     * Email address
      */
-    public String getName() {
-        return name;
-    }
+    public String email;
 
     /**
-     * @param name
-     *            the name to set
+     * Website
      */
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String website;
 
+    /**
+     * Uri of the image
+     */
+    public Uri imageUri;
+
+    /**
+     * The provider of this place
+     */
+    public String source;
+
+    @Override
+    public String toString() {
+        Objects.ToStringHelper toStringHelper = Objects.toStringHelper(this);
+        toStringHelper.add("name", name);
+        toStringHelper.add("phoneNumber", phoneNumber);
+        toStringHelper.add("normalizedNumber", normalizedNumber);
+        toStringHelper.add("address", address);
+        toStringHelper.add("street", street);
+        toStringHelper.add("postalCode", postalCode);
+        toStringHelper.add("city", city);
+        toStringHelper.add("latitude", latitude);
+        toStringHelper.add("longitude", longitude);
+        toStringHelper.add("email", email);
+        toStringHelper.add("website", website);
+        toStringHelper.add("imageUri", imageUri);
+        toStringHelper.add("source", source);
+        return toStringHelper.toString();
+    }
 }

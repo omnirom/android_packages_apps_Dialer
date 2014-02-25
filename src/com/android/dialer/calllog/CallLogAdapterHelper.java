@@ -26,6 +26,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
+import com.android.contacts.common.util.UriUtils;
 import com.android.dialer.util.ExpirableCache;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -350,6 +351,10 @@ public class CallLogAdapterHelper implements ViewTreeObserver.OnPreDrawListener 
         // even if it has not changed so that it is marked as not expired.
         mContactInfoCache.put(numberCountryIso, info);
         mCb.updateContactInfo(number, countryIso, info, callLogInfo);
+
+        // The photo uri isn't cached. Overwrite updated if it has changed
+        updated |= !UriUtils.areEqual(info.photoUri, existingInfo.photoUri);
+
         return updated;
     }
 
