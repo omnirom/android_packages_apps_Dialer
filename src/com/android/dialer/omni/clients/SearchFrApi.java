@@ -19,56 +19,33 @@
 package com.android.dialer.omni.clients;
 
 import java.net.URLEncoder;
-import java.util.Arrays;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Log;
 
+import com.android.dialer.omni.IReverseLookupApi;
 import com.android.dialer.omni.Place;
 import com.android.dialer.omni.PlaceUtil;
-import com.android.dialer.omni.IReverseLookupApi;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 
 public class SearchFrApi implements IReverseLookupApi {
 
-    private final static String TAG = "SearchFrApi";
+    private final static String TAG = SearchFrApi.class.getSimpleName();
     private final static String QUERY_URL = "http://www.recherche-inverse.com/ajax/xml-getinfo.php?mode=json&code&w=1&num=";
-
-    private static final int[] SUPPORTED_COUNTRIES = { 33 };
-    private String mCity = null;
 
     @Override
     public String getApiProviderName() {
-        // It looks better to show the city here, since the API provides it
-        if (mCity != null) {
-            return mCity;
-        } else {
-            return "recherche-inverse.com";
-        }
+        return "recherche-inverse.com";
     }
 
     @Override
-    public int[] getSupportedCountryCodes() {
-        return SUPPORTED_COUNTRIES;
-    }
-
-    @Override
-    public Place getNamedPlaceByNumber(String phoneNumber) {
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
         // This API requires us to have a national-formatted number
-        if (phoneNumber.startsWith("0033")) {
-            phoneNumber = phoneNumber.substring(4);
-            phoneNumber = "0" + phoneNumber;
-        } else if (phoneNumber.startsWith("+33")) {
-            phoneNumber = phoneNumber.substring(3);
-            phoneNumber = "0" + phoneNumber;
-        }
+        String nationalNumber = "0" + Long.toString(phoneNumber.getNationalNumber());
 
-        // Trim out spaces as well
-        phoneNumber = phoneNumber.replaceAll(" ", "");
-
-        String encodedNumber = URLEncoder.encode(phoneNumber);
+        String encodedNumber = URLEncoder.encode(nationalNumber);
         Place place = null;
 
         if (DEBUG) Log.d(TAG, "Looking for: " + QUERY_URL + phoneNumber);
@@ -83,8 +60,8 @@ public class SearchFrApi implements IReverseLookupApi {
                     // Number looks good!
                     place = new Place();
                     place.setName(inverse.getString("NOM"));
-                    place.setPhoneNumber(phoneNumber);
-                    mCity = inverse.getString("LIB_SNT_LOCP");
+                    place.setPhoneNumber(nationalNumber);
+                    place.setCity(inverse.getString("LIB_SNT_LOCP"));
                 } else {
                     Log.e(TAG, "The API returned informations for "
                             + inverse.get("NNAT") + " instead of " + phoneNumber + "!");
