@@ -16,12 +16,16 @@
 
 package com.android.dialer.calllog;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.DisplayNameSources;
 import android.provider.ContactsContract.PhoneLookup;
@@ -29,14 +33,23 @@ import android.provider.Settings;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.android.contacts.common.util.Constants;
 import com.android.contacts.common.util.UriUtils;
 import com.android.dialer.R;
+import com.android.dialer.omni.CachedPlacesService;
+import com.android.dialer.omni.IReverseLookupApi;
+import com.android.dialer.omni.Place;
+import com.android.dialer.omni.PlaceUtil;
 import com.android.dialer.service.CachedNumberLookupService;
 import com.android.dialer.service.CachedNumberLookupService.CachedContactInfo;
 import com.android.dialerbind.ObjectFactory;
+import com.android.i18n.phonenumbers.NumberParseException;
+import com.android.i18n.phonenumbers.PhoneNumberUtil;
+import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
+import com.android.i18n.phonenumbers.Phonenumber;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,6 +63,8 @@ public class ContactInfoHelper {
 
     private static final CachedNumberLookupService mCachedNumberLookupService =
             ObjectFactory.newCachedNumberLookupService();
+    private final static CachedPlacesService mCachedPlacesService =
+            ObjectFactory.newCachedPlacesService();
 
     public ContactInfoHelper(Context context, String currentCountryIso) {
         mContext = context;
@@ -68,7 +83,25 @@ public class ContactInfoHelper {
      * @param countryIso the country associated with this number
      */
     public ContactInfo lookupNumber(String number, String countryIso) {
-        final ContactInfo info;
+        return lookupNumber(number, countryIso, false);
+    }
+
+    /**
+     * Returns the contact information for the given number.
+     * <p>
+     * If the number does not match any contact, returns a contact info containing only the number
+     * and the formatted number.
+     * <p>
+     * If an error occurs during the lookup, it returns null.
+     *
+     * @param number the number to look up
+     * @param countryIso the country associated with this number
+     * @param reverseLookup whether unknown numbers should be looked up
+     *                      {@link com.android.dialer.omni.IReverseLookupApi}
+     */
+    public ContactInfo lookupNumber(String number, String countryIso,
+            boolean reverseLookup) {
+        ContactInfo info;
 
         // Determine the contact info.
         if (PhoneNumberUtils.isUriNumber(number)) {
@@ -99,7 +132,13 @@ public class ContactInfoHelper {
             // The lookup failed.
             updatedInfo = null;
         } else {
-            // If we did not find a matching contact, generate an empty contact info for the number.
+            // If we did not find a matching contact, do a reverse lookup
+            if (info == ContactInfo.EMPTY) {
+                info = reverseLookup(number, countryIso, reverseLookup);
+            }
+
+            // If we still did not find a matching contact,
+            // generate an empty contact info for the number.
             if (info == ContactInfo.EMPTY) {
                 // Did not find a matching contact.
                 updatedInfo = new ContactInfo();
@@ -132,6 +171,47 @@ public class ContactInfoHelper {
                             .put(Contacts.DISPLAY_NAME_SOURCE, DisplayNameSources.PHONE)
                             .put(Contacts.CONTENT_ITEM_TYPE, contactRows)
                             .toString();
+
+            return Contacts.CONTENT_LOOKUP_URI.buildUpon()
+                    .appendPath(Constants.LOOKUP_URI_ENCODED)
+                    .appendQueryParameter(ContactsContract.DIRECTORY_PARAM_KEY,
+                            String.valueOf(Long.MAX_VALUE))
+                    .encodedFragment(jsonString)
+                    .build();
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Creates a JSON-encoded lookup uri for a unknown number without an associated contact
+     *
+     * @param place - Unknown place
+     * @return JSON-encoded URI that can be used to perform a lookup when clicking
+     * on the quick contact card.
+     */
+    private static Uri createTemporaryContactUri(Place place) {
+        try {
+            final JSONObject contactRows = new JSONObject()
+                    .put(Phone.CONTENT_ITEM_TYPE, new JSONObject()
+                            .put(Phone.NUMBER, place.getPhoneNumber())
+                            .put(Phone.TYPE, place.getPhoneType()))
+                    .put(StructuredPostal.CONTENT_ITEM_TYPE, new JSONObject()
+                            .put(StructuredPostal.FORMATTED_ADDRESS, String.format("%s, %s %s",
+                                    place.getStreet(), place.getPostalCode(), place.getCity()))
+                            .put(StructuredPostal.STREET, place.getStreet())
+                            .put(StructuredPostal.POSTCODE, place.getPostalCode())
+                            .put(StructuredPostal.CITY, place.getCity()))
+                    .put(StructuredName.CONTENT_ITEM_TYPE, new JSONObject()
+                            .put(StructuredName.DISPLAY_NAME, place.getName()))
+                    .put(Email.CONTENT_ITEM_TYPE, new JSONObject()
+                            .put(Email.ADDRESS, place.getEmail()));
+
+            final String jsonString = new JSONObject()
+                    .put(Contacts.DISPLAY_NAME, place.getName())
+                    .put(Contacts.DISPLAY_NAME_SOURCE, DisplayNameSources.PHONE)
+                    .put(Contacts.CONTENT_ITEM_TYPE, contactRows)
+                    .toString();
 
             return Contacts.CONTENT_LOOKUP_URI.buildUpon()
                     .appendPath(Constants.LOOKUP_URI_ENCODED)
@@ -237,6 +317,64 @@ public class ContactInfoHelper {
             CachedContactInfo cacheInfo = mCachedNumberLookupService
                 .lookupCachedContactFromNumber(mContext, number);
             info = cacheInfo != null ? cacheInfo.getContactInfo() : null;
+        }
+        return info;
+    }
+
+    /**
+     * Reverse lookup for given phone number.
+     * <p>
+     * It returns the contact info if found.
+     * <p>
+     * If no place corresponds to the given phone number, returns {@link ContactInfo#EMPTY}.
+     *
+     * @param online whether the lookup should be performed online.
+     *               If false, look only in cache.
+     */
+    private ContactInfo reverseLookup(String number, String countryIso, boolean online) {
+        ContactInfo info = ContactInfo.EMPTY;
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.ENABLE_DIALER_REVERSE_LOOKUP, 0) == 1) {
+            PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+            Phonenumber.PhoneNumber phoneNumber = null;
+            try {
+                phoneNumber = util.parse(number, countryIso);
+            } catch (NumberParseException e) {
+            }
+
+            if (phoneNumber == null || !util.isValidNumber(phoneNumber)) {
+                return ContactInfo.EMPTY;
+            }
+
+            String normalizedNumber = util.format(phoneNumber, PhoneNumberFormat.E164);
+
+            // look in cache
+            Place place = mCachedPlacesService
+                    .lookupCachedPlaceFromNumber(mContext, normalizedNumber);
+
+            // if number not found in cache, do online lookup
+            if (online && Place.isEmpty(place)) {
+                place = PlaceUtil.getNamedPlaceByNumber(mContext, phoneNumber);
+            }
+
+            // place found
+            if (!Place.isEmpty(place)) {
+                info = new ContactInfo();
+                info.number = number;
+                info.formattedNumber = normalizedNumber;
+                info.name = place.getName();
+
+                // show city and source as label
+                info.type = Phone.TYPE_CUSTOM;
+                String label = "";
+                if (!TextUtils.isEmpty(place.getCity())) {
+                    label = place.getCity() + ", ";
+                }
+                label += place.getSource();
+                info.label = label;
+
+                info.lookupUri = createTemporaryContactUri(place);
+            }
         }
         return info;
     }

@@ -18,35 +18,29 @@
 
 package com.android.dialer.omni.clients;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import android.util.Log;
+
+import com.android.dialer.omni.IPlacesAroundApi;
+import com.android.dialer.omni.IReverseLookupApi;
+import com.android.dialer.omni.Place;
+import com.android.dialer.omni.PlaceUtil;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.android.dialer.omni.Place;
-import com.android.dialer.omni.IRemoteApi;
-import com.android.dialer.omni.PlaceUtil;
-import com.android.dialer.omni.IPlacesAroundApi;
-import com.android.dialer.omni.IReverseLookupApi;
-
-import com.android.i18n.phonenumbers.NumberParseException;
-import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
-import com.android.i18n.phonenumbers.PhoneNumberUtil;
-import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
-
-import android.util.Log;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
  * Class to interact with OpenStreetMaps API (Overpass API)
  */
 public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
-    private final static String TAG = "OsmApi";
+    private final static String TAG = OsmApi.class.getSimpleName();
 
     // -----
     // Constants
@@ -96,11 +90,6 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
         return "OpenStreetMap";
     }
 
-    @Override
-    public int[] getSupportedCountryCodes() {
-        return null;
-    }
-
     /**
      * Fetches and returns a list of named Places around the provided latitude and
      * longitude parameters. The bounding box is calculated from lat-distance, lon-distance
@@ -124,7 +113,7 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
         double lonStart =   lon - distance / 2.0;
         double lonEnd =     lon + distance / 2.0;
 
-        // The OSM API doesn't support case-insentive searches, but does support RegEx. So
+        // The OSM API doesn't support case-insensitive searches, but does support RegEx. So
         // we hack around a bit.
         String finalName = "";
         for (int i = 0; i < name.length(); i++) {
@@ -153,32 +142,28 @@ public class OsmApi implements IPlacesAroundApi, IReverseLookupApi {
      * Fetches and returns a named Place with the provided phone number.
      * This method is NOT asynchronous. Run it in a thread.
      *
-     * @param phoneNumber the number in {@link com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat.E164} format
+     * @param phoneNumber the phone number
      * @return the first matching place
      */
     @Override
-    public Place getNamedPlaceByNumber(String phoneNumber) {
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
         if (DEBUG) Log.d(TAG, "Getting place for " + phoneNumber);
         Place place = null;
 
-        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
-        try {
-            phoneNumber = Long.toString(phoneUtil.parse(phoneNumber, null).getNationalNumber());
-        } catch (NumberParseException e) {
-            // this should never happen, or it's a special number. No need to lookup
-            // for those then.
-            Log.e(TAG, "Cannot parse this phone number (" + phoneNumber + ")", e);
-            return null;
-        }
+        String nationalNumber = Long.toString(phoneNumber.getNationalNumber());
+        String countryCode = Long.toString(phoneNumber.getCountryCode());
 
         // build the reg exp for number look up:
         // ignore additional ;-separated numbers before and after: "^(.*;)?" and "(;.*)?$"
-        // allow + or 00 in before the country code: "^(\\+)?[0-9]*"
+        // allow + or 00 in before the country code: "^(\\+)?" + countryCode
+        //     or allow national number without country code but with leading "0"
         // allow spaces, - and / between digits: "[^;0-9]*"
-        String regExp = "^(\\\\+)?[0-9]*";
-        for (int i = 0; i < phoneNumber.length(); i++) {
-            char c = phoneNumber.charAt(i);
-            regExp += c + "[^;0-9]*";
+        String ignoredChars = "[^;0-9]*";
+        String regExp = "^(.*;)?" + ignoredChars;
+        regExp += "((\\\\+|00)" + countryCode + "|0)" + ignoredChars;
+        for (int i = 0; i < nationalNumber.length(); i++) {
+            char c = nationalNumber.charAt(i);
+            regExp += c + ignoredChars;
         }
         regExp += "(;.*)?$";
 

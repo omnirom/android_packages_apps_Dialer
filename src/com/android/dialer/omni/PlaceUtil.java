@@ -44,17 +44,159 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.android.dialer.R;
+import com.android.dialer.omni.clients.OsmApi;
+import com.android.dialer.omni.clients.SearchChApi;
+import com.android.dialer.omni.clients.SearchFrApi;
+import com.android.dialer.omni.clients.SearchUsApi;
+import com.android.dialerbind.ObjectFactory;
+import com.android.i18n.phonenumbers.PhoneNumberUtil;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 
 public class PlaceUtil {
-    private final static String TAG = "PlaceUtil";
+    private final static String TAG = PlaceUtil.class.getSimpleName();
     private final static boolean DEBUG = false;
+
+    public enum ReverseLookupType {
+        GLOBAL, LOCAL
+    }
+
+    private final static CachedPlacesService sCachedPlacesService =
+            ObjectFactory.newCachedPlacesService();
+
+    public static Place getNamedPlaceByNumber(PhoneNumber phoneNumber, ReverseLookupType type) {
+        return getNamedPlaceByNumber(null, phoneNumber, type);
+    }
+
+    public static Place getNamedPlaceByNumber(Context context, PhoneNumber phoneNumber,
+                ReverseLookupType type) {
+        IReverseLookupApi api = null;
+        Place place = null;
+
+        if (type == ReverseLookupType.GLOBAL) {
+            api = getGlobalReverseApi();
+        } else if (type == ReverseLookupType.LOCAL) {
+            api = getLocalReverseApi(phoneNumber);
+        }
+
+        if (api != null) {
+            if (DEBUG) Log.d(TAG, "Running phone number lookup for " + phoneNumber
+                    + " on " + api.getApiProviderName());
+
+            showToastLookup(context, api, phoneNumber);
+            place = api.getNamedPlaceByNumber(phoneNumber);
+            if (!Place.isEmpty(place)) {
+                place.setSource(api.getApiProviderName());
+
+                if (context != null) {
+                    sCachedPlacesService.addPlace(context, place);
+                    // TODO: save image
+                }
+            }
+        }
+
+        return place;
+    }
+
+    public static Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
+        return getNamedPlaceByNumber(null, phoneNumber);
+    }
+
+    public static Place getNamedPlaceByNumber(Context context, PhoneNumber phoneNumber) {
+        Place place = getNamedPlaceByNumber(context, phoneNumber, ReverseLookupType.GLOBAL);
+        if (Place.isEmpty(place)) {
+            place = getNamedPlaceByNumber(context, phoneNumber, ReverseLookupType.LOCAL);
+        }
+        if (Place.isEmpty(place)) {
+            showToastLookupFailed(context);
+        } else {
+            showToastLookupFinished(context);
+        }
+        return place;
+    }
+
+    private static void showToastLookup(Context context, IReverseLookupApi api,
+            PhoneNumber phoneNumber) {
+        if (context != null) {
+            String normalizedNumber = PhoneNumberUtil.getInstance()
+                    .format(phoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
+            String text = context.getString(R.string.toast_reverse_lookup,
+                    normalizedNumber, api.getApiProviderName());
+            showToast(context, text, Toast.LENGTH_SHORT);
+        }
+    }
+
+    private static void showToastLookupFinished(Context context) {
+        if (context != null) {
+            String text = context.getString(R.string.toast_reverse_lookup_finished);
+            showToast(context, text, Toast.LENGTH_SHORT);
+        }
+    }
+
+    private static void showToastLookupFailed(Context context) {
+        if (context != null) {
+            String text = context.getString(R.string.toast_reverse_lookup_failed);
+            showToast(context, text, Toast.LENGTH_SHORT);
+        }
+    }
+
+    public static void showToast(final Context context, final String text, final int duration) {
+        if (context != null) {
+            if (context instanceof Activity) {
+                final Activity activity = (Activity) context;
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(activity, text, duration).show();
+                    }
+                });
+            } else {
+                if (DEBUG) {
+                    Log.d(TAG, "don't show toast, context is " + context.getClass());
+                }
+            }
+        }
+    }
+
+    public static IReverseLookupApi getGlobalReverseApi() {
+        // TODO: When we have other providers (like Google Places API),
+        // add an UI to select it.
+        return new OsmApi();
+    }
+
+    public static IReverseLookupApi getLocalReverseApi(PhoneNumber phoneNumber) {
+        if (phoneNumber != null) {
+            int countryCode = phoneNumber.getCountryCode();
+            if (countryCode == 1) {
+                return new SearchUsApi();
+            } else if (countryCode == 30) {
+                // return new SearchGrApi();
+            } else if (countryCode == 31) {
+                // return new SearchNlApi();
+            } else if (countryCode == 32) {
+                // return new SearchBeApi();
+            } else if (countryCode == 33) {
+                return new SearchFrApi();
+            } else if (countryCode == 41) {
+                return new SearchChApi();
+            } else if (countryCode == 49) {
+                // return new SearchDeApi();
+            }
+        }
+
+        return null;
+    }
 
     /**
      * Executes a post request and return a JSON object
      * @param url The API URL
-     * @param data The data to post in POST field
+     * @param postData The data to post in POST field
      * @return the JSON object
      * @throws IOException
      * @throws JSONException

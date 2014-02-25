@@ -19,24 +19,23 @@
 package com.android.dialer.omni.clients;
 
 import java.net.URLEncoder;
-import java.util.Arrays;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.util.Log;
 
+import com.android.dialer.omni.IReverseLookupApi;
 import com.android.dialer.omni.Place;
 import com.android.dialer.omni.PlaceUtil;
-import com.android.dialer.omni.IReverseLookupApi;
+import com.android.i18n.phonenumbers.PhoneNumberUtil;
+import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
+import com.android.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 
 public class SearchUsApi implements IReverseLookupApi {
 
-    private final static String TAG = "SearchUsApi";
+    private final static String TAG = SearchUsApi.class.getSimpleName();
     private final static String QUERY_URL = "http://www.whitepages.com/search/ReversePhone?full_phone=";
-
-    private static final int[] SUPPORTED_COUNTRIES = { 1 };
 
     @Override
     public String getApiProviderName() {
@@ -44,13 +43,10 @@ public class SearchUsApi implements IReverseLookupApi {
     }
 
     @Override
-    public int[] getSupportedCountryCodes() {
-        return SUPPORTED_COUNTRIES;
-    }
-
-    @Override
-    public Place getNamedPlaceByNumber(String phoneNumber) {
-        String encodedNumber = URLEncoder.encode(phoneNumber);
+    public Place getNamedPlaceByNumber(PhoneNumber phoneNumber) {
+        String normalizedNumber = PhoneNumberUtil.getInstance().format(phoneNumber,
+                PhoneNumberFormat.E164);
+        String encodedNumber = URLEncoder.encode(normalizedNumber);
         Place place = null;
 
         try {
@@ -65,7 +61,7 @@ public class SearchUsApi implements IReverseLookupApi {
 
                 place = new Place();
                 place.setName(name);
-                place.setPhoneNumber(phoneNumber);
+                place.setPhoneNumber(normalizedNumber);
             } else {
                 Log.w(TAG, "Regex matched nothing!");
             }
