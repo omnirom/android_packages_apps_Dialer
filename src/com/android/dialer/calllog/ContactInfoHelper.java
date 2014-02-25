@@ -34,9 +34,16 @@ import android.widget.Toast;
 import com.android.contacts.common.util.Constants;
 import com.android.contacts.common.util.UriUtils;
 import com.android.dialer.R;
+import com.android.dialer.omni.CachedPlacesService;
+import com.android.dialer.omni.Place;
+import com.android.dialer.omni.PlaceUtil;
 import com.android.dialer.service.CachedNumberLookupService;
 import com.android.dialer.service.CachedNumberLookupService.CachedContactInfo;
 import com.android.dialerbind.ObjectFactory;
+import com.android.i18n.phonenumbers.NumberParseException;
+import com.android.i18n.phonenumbers.PhoneNumberUtil;
+import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
+import com.android.i18n.phonenumbers.Phonenumber;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,6 +57,8 @@ public class ContactInfoHelper {
 
     private static final CachedNumberLookupService mCachedNumberLookupService =
             ObjectFactory.newCachedNumberLookupService();
+    private final static CachedPlacesService mCachedPlacesService =
+            ObjectFactory.newCachedPlacesService();
 
     public ContactInfoHelper(Context context, String currentCountryIso) {
         mContext = context;
@@ -68,7 +77,25 @@ public class ContactInfoHelper {
      * @param countryIso the country associated with this number
      */
     public ContactInfo lookupNumber(String number, String countryIso) {
-        final ContactInfo info;
+        return lookupNumber(number, countryIso, false);
+    }
+
+    /**
+     * Returns the contact information for the given number.
+     * <p>
+     * If the number does not match any contact, returns a contact info containing only the number
+     * and the formatted number.
+     * <p>
+     * If an error occurs during the lookup, it returns null.
+     *
+     * @param number the number to look up
+     * @param countryIso the country associated with this number
+     * @param reverseLookup whether unknown numbers should be looked up
+     *                      {@link com.android.dialer.omni.IReverseLookupApi}
+     */
+    public ContactInfo lookupNumber(String number, String countryIso,
+            boolean reverseLookup) {
+        ContactInfo info;
 
         // Determine the contact info.
         if (PhoneNumberUtils.isUriNumber(number)) {
@@ -99,7 +126,13 @@ public class ContactInfoHelper {
             // The lookup failed.
             updatedInfo = null;
         } else {
-            // If we did not find a matching contact, generate an empty contact info for the number.
+            // If we did not find a matching contact, do a reverse lookup
+            if (info == ContactInfo.EMPTY) {
+                info = reverseLookup(number, countryIso, reverseLookup);
+            }
+
+            // If we still did not find a matching contact,
+            // generate an empty contact info for the number.
             if (info == ContactInfo.EMPTY) {
                 // Did not find a matching contact.
                 updatedInfo = new ContactInfo();
@@ -237,6 +270,64 @@ public class ContactInfoHelper {
             CachedContactInfo cacheInfo = mCachedNumberLookupService
                 .lookupCachedContactFromNumber(mContext, number);
             info = cacheInfo != null ? cacheInfo.getContactInfo() : null;
+        }
+        return info;
+    }
+
+    /**
+     * Reverse lookup for given phone number.
+     * <p>
+     * It returns the contact info if found.
+     * <p>
+     * If no place corresponds to the given phone number, returns {@link ContactInfo#EMPTY}.
+     *
+     * @param online whether the lookup should be performed online.
+     *               If false, look only in cache.
+     */
+    private ContactInfo reverseLookup(String number, String countryIso, boolean online) {
+        ContactInfo info = ContactInfo.EMPTY;
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.ENABLE_DIALER_REVERSE_LOOKUP, 0) == 1) {
+            PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+            Phonenumber.PhoneNumber phoneNumber = null;
+            try {
+                phoneNumber = util.parse(number, countryIso);
+            } catch (NumberParseException e) {
+            }
+
+            if (phoneNumber == null || !util.isValidNumber(phoneNumber)) {
+                return ContactInfo.EMPTY;
+            }
+
+            String normalizedNumber = util.format(phoneNumber, PhoneNumberFormat.E164);
+
+            // look in cache
+            Place place = mCachedPlacesService
+                    .lookupCachedPlaceFromNumber(mContext, normalizedNumber);
+
+            // if number not found in cache, do online lookup
+            if (online && Place.isEmpty(place)) {
+                place = PlaceUtil.getNamedPlaceByNumber(mContext, phoneNumber);
+            }
+
+            // place found
+            if (!Place.isEmpty(place)) {
+                info = new ContactInfo();
+                info.number = number;
+                info.formattedNumber = normalizedNumber;
+                info.name = place.name;
+
+                // show city and source as label
+                info.type = Phone.TYPE_CUSTOM;
+                String label = "";
+                if (!TextUtils.isEmpty(place.city)) {
+                    label = place.city + ", ";
+                }
+                label += place.source;
+                info.label = label;
+
+                info.lookupUri = PlaceUtil.createTemporaryContactUri(place);
+            }
         }
         return info;
     }

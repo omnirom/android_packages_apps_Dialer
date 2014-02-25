@@ -17,31 +17,21 @@
 package com.android.dialer;
 
 import android.app.Activity;
-import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.res.Resources;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.provider.CallLog.Calls;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
-import android.provider.ContactsContract.Contacts;
-import android.provider.ContactsContract.DisplayNameSources;
-import android.provider.ContactsContract.Intents.Insert;
+import android.provider.Settings;
 import android.provider.VoicemailContract.Voicemails;
-import android.telephony.PhoneNumberUtils;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -51,12 +41,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.contacts.common.ContactPhotoManager;
 import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.GeoUtil;
-import com.android.contacts.common.model.Contact;
-import com.android.contacts.common.model.ContactLoader;
-import com.android.contacts.common.util.UriUtils;
 import com.android.dialer.BackScrollManager.ScrollableHeader;
 import com.android.dialer.calllog.CallDetailHistoryAdapter;
 import com.android.dialer.calllog.CallTypeHelper;
@@ -81,6 +67,7 @@ import java.util.List;
  */
 public class CallDetailActivity extends Activity implements ProximitySensorAware {
     private static final String TAG = "CallDetail";
+    private static final boolean DEBUG = false;
 
     private static final int LOADER_ID = 0;
     private static final String BUNDLE_CONTACT_URI_EXTRA = "contact_uri_extra";
@@ -135,6 +122,8 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     private boolean mHasTrashOption;
     /** Whether we should show "remove from call log" in the options menu. */
     private boolean mHasRemoveFromCallLogOption;
+    /** Whether we should show "reverse lookup" in the options menu. */
+    private boolean mHasReverseLookupOption;
 
     private ProximitySensorManager mProximitySensorManager;
     private final ProximitySensorListener mProximitySensorListener = new ProximitySensorListener();
@@ -335,6 +324,17 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
      * @param callUris URIs into {@link CallLog.Calls} of the calls to be displayed
      */
     private void updateData(final Uri... callUris) {
+        updateData(false, callUris);
+    }
+
+    /**
+     * Update user interface with details of given call.
+     *
+     * @param reverseLookup whether unknown numbers should be looked up
+     *                      {@link com.android.dialer.omni.IReverseLookupApi}
+     * @param callUris URIs into {@link CallLog.Calls} of the calls to be displayed
+     */
+    private void updateData(final boolean reverseLookup, final Uri... callUris) {
         class UpdateContactDetailsTask extends AsyncTask<Void, Void, PhoneCallDetails[]> {
             @Override
             public PhoneCallDetails[] doInBackground(Void... params) {
@@ -344,7 +344,10 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                 PhoneCallDetails[] details = new PhoneCallDetails[numCalls];
                 try {
                     for (int index = 0; index < numCalls; ++index) {
-                        details[index] = getPhoneCallDetailsForUri(callUris[index]);
+                        // do the reverse lookup only on the first call from this number
+                        boolean doReverseLookup = index == 0 && reverseLookup;
+                        details[index] = getPhoneCallDetailsForUri(callUris[index],
+                                doReverseLookup);
                     }
                     return details;
                 } catch (IllegalArgumentException e) {
@@ -377,6 +380,8 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                 mHasEditNumberBeforeCallOption = mCallDetailHeader.canEditNumberBeforeCall();
                 mHasTrashOption = hasVoicemail();
                 mHasRemoveFromCallLogOption = !hasVoicemail();
+                mHasReverseLookupOption = Settings.System.getInt(getContentResolver(),
+                        Settings.System.ENABLE_DIALER_REVERSE_LOOKUP, 0) == 1;
                 invalidateOptionsMenu();
 
                 ListView historyList = (ListView) findViewById(R.id.history);
@@ -419,7 +424,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     }
 
     /** Return the phone call details for a given call log URI. */
-    private PhoneCallDetails getPhoneCallDetailsForUri(Uri callUri) {
+    private PhoneCallDetails getPhoneCallDetailsForUri(Uri callUri, boolean reverseLookup) {
         ContentResolver resolver = getContentResolver();
         Cursor callCursor = resolver.query(callUri, CALL_LOG_PROJECTION, null, null, null);
         try {
@@ -453,7 +458,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
             ContactInfo info =
                     PhoneNumberUtilsWrapper.canPlaceCallsTo(number, numberPresentation)
                     && !new PhoneNumberUtilsWrapper().isVoicemailNumber(number)
-                            ? mContactInfoHelper.lookupNumber(number, countryIso)
+                            ? mContactInfoHelper.lookupNumber(number, countryIso, reverseLookup)
                             : null;
             if (info == null) {
                 formattedNumber = mPhoneNumberHelper.getDisplayNumber(number,
@@ -471,6 +476,12 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                 photoUri = info.photoUri;
                 lookupUri = info.lookupUri;
             }
+
+            if (DEBUG) {
+                Log.d(TAG, "callUri = " + callUri);
+                Log.d(TAG, "lookupUri = " + lookupUri);
+            }
+
             return new PhoneCallDetails(number, numberPresentation,
                     formattedNumber, countryIso, geocode,
                     new int[]{ callType }, date, duration,
@@ -538,6 +549,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
         menu.findItem(R.id.menu_remove_from_call_log).setVisible(mHasRemoveFromCallLogOption);
         menu.findItem(R.id.menu_edit_number_before_call).setVisible(mHasEditNumberBeforeCallOption);
         menu.findItem(R.id.menu_trash).setVisible(mHasTrashOption);
+        menu.findItem(R.id.menu_reverse_lookup).setVisible(mHasReverseLookupOption);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -583,6 +595,10 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                         finish();
                     }
                 });
+    }
+
+    public void onMenuReverseLookup(MenuItem menuItem) {
+        updateData(true, getCallLogEntryUris());
     }
 
     /** Invoked when the user presses the home button in the action bar. */
