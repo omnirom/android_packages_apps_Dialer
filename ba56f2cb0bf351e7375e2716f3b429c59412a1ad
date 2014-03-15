@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b77b57d_58280f96",
+        "filename": "src/com/android/dialer/dialpad/DialpadFragment.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1000117
+      },
+      "writtenOn": "2014-03-15T08:24:05Z",
+      "side": 1,
+      "message": "cannot find symbol",
+      "revId": "ba56f2cb0bf351e7375e2716f3b429c59412a1ad",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b77b57d_7825cbbc",
+        "filename": "src/com/android/dialer/dialpad/DialpadFragment.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 819,
+      "author": {
+        "id": 1000117
+      },
+      "writtenOn": "2014-03-15T08:24:05Z",
+      "side": 1,
+      "message": "method does not override or implement a method from a supertype",
+      "revId": "ba56f2cb0bf351e7375e2716f3b429c59412a1ad",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b77b57d_9832a706",
+        "filename": "src/com/android/dialer/dialpad/DialpadFragment.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 825,
+      "author": {
+        "id": 1000117
+      },
+      "writtenOn": "2014-03-15T08:24:05Z",
+      "side": 1,
+      "message": "duh",
+      "revId": "ba56f2cb0bf351e7375e2716f3b429c59412a1ad",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55",
+      "unresolved": false
+    }
+  ]
+}
