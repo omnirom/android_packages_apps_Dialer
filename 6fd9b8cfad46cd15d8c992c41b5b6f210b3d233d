@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b77b57d_aed1cbd3",
+        "filename": "res/values-zh-rCN/cm_strings.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000032
+      },
+      "writtenOn": "2014-04-26T21:23:20Z",
+      "side": 1,
+      "message": "这些string可以全删掉",
+      "revId": "6fd9b8cfad46cd15d8c992c41b5b6f210b3d233d",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55",
+      "unresolved": false
+    }
+  ]
+}
