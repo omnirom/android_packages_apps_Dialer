@@ -16,4 +16,9 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
      <string name="nearby_places">Lieux à proximité</string>
+    <string name="nearby_places_distance">Éloigné de %1$.1f km</string>
+    <string name="recentCalls_reverseLookup">Recherche inversée</string>
+    <string name="toast_reverse_lookup">Recherche de %1$s sur %2$s\u2026</string>
+    <string name="toast_reverse_lookup_failed">Aucun lieu trouvé.</string>
+    <string name="toast_reverse_lookup_finished">Recherche inversée terminée.</string>
 </resources>
