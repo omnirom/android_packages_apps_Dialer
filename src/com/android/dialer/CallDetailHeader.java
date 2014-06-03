@@ -42,7 +42,7 @@ import com.android.contacts.common.ClipboardUtils;
 import com.android.contacts.common.ContactPhotoManager;
 import com.android.contacts.common.format.FormatUtils;
 import com.android.contacts.common.util.Constants;
-import com.android.dialer.calllog.PhoneNumberHelper;
+import com.android.dialer.calllog.PhoneNumberDisplayHelper;
 import com.android.dialer.calllog.PhoneNumberUtilsWrapper;
 
 public class CallDetailHeader {
@@ -51,7 +51,7 @@ public class CallDetailHeader {
 
     private Activity mActivity;
     private Resources mResources;
-    private PhoneNumberHelper mPhoneNumberHelper;
+    private PhoneNumberDisplayHelper mPhoneNumberHelper;
     private ContactPhotoManager mContactPhotoManager;
 
     private String mNumber;
@@ -111,7 +111,7 @@ public class CallDetailHeader {
         }
     };
 
-    public CallDetailHeader(Activity activity, PhoneNumberHelper phoneNumberHelper) {
+    public CallDetailHeader(Activity activity, PhoneNumberDisplayHelper phoneNumberHelper) {
         mActivity = activity;
         mResources = activity.getResources();
         mPhoneNumberHelper = phoneNumberHelper;
@@ -317,7 +317,7 @@ public class CallDetailHeader {
     /** Load the contact photos and places them in the corresponding views. */
     public void loadContactPhotos(Uri photoUri) {
         mContactPhotoManager.loadPhoto(mContactBackgroundView, photoUri,
-                mContactBackgroundView.getWidth(), true);
+                mContactBackgroundView.getWidth(), true, null);
     }
 
     public boolean canEditNumberBeforeCall() {

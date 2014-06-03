@@ -254,7 +254,7 @@ public class DialerPhoneNumberListAdapter extends PhoneNumberListAdapter {
 
         QuickContactBadge quickContact = v.getQuickContact();
         quickContact.assignContactUri(PlaceUtil.createTemporaryContactUri(mContext, place));
-        getPhotoLoader().loadPhoto(quickContact, place.imageUri, -1, false);
+        getPhotoLoader().loadPhoto(quickContact, place.imageUri, -1, false, null);
     }
 
     public void setShortcutEnabled(int shortcutType, boolean visible) {

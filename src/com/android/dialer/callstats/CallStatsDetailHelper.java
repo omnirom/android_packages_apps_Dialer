@@ -26,7 +26,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.android.dialer.R;
-import com.android.dialer.calllog.PhoneNumberHelper;
+import com.android.dialer.calllog.PhoneNumberDisplayHelper;
 import com.android.dialer.calllog.PhoneNumberUtilsWrapper;
 
 /**
@@ -35,12 +35,12 @@ import com.android.dialer.calllog.PhoneNumberUtilsWrapper;
 public class CallStatsDetailHelper {
 
     private final Resources mResources;
-    private final PhoneNumberHelper mPhoneNumberHelper;
+    private final PhoneNumberDisplayHelper mPhoneNumberHelper;
     private final PhoneNumberUtilsWrapper mPhoneNumberUtilsWrapper;
 
     public CallStatsDetailHelper(Resources resources, PhoneNumberUtilsWrapper phoneUtils) {
         mResources = resources;
-        mPhoneNumberHelper = new PhoneNumberHelper(resources);
+        mPhoneNumberHelper = new PhoneNumberDisplayHelper(resources);
         mPhoneNumberUtilsWrapper = phoneUtils;
     }
 

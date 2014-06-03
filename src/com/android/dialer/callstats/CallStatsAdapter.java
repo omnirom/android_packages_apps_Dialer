@@ -32,7 +32,7 @@ import com.android.dialer.R;
 import com.android.dialer.calllog.CallLogAdapterHelper;
 import com.android.dialer.calllog.ContactInfo;
 import com.android.dialer.calllog.ContactInfoHelper;
-import com.android.dialer.calllog.PhoneNumberHelper;
+import com.android.dialer.calllog.PhoneNumberDisplayHelper;
 import com.android.dialer.calllog.PhoneNumberUtilsWrapper;
 
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ class CallStatsAdapter extends ArrayAdapter<CallStatsDetails>
         mInfoLookup = new ConcurrentHashMap<ContactInfo, CallStatsDetails>();
 
         Resources resources = mContext.getResources();
-        PhoneNumberHelper phoneNumberHelper = new PhoneNumberHelper(resources);
+        PhoneNumberDisplayHelper phoneNumberHelper = new PhoneNumberDisplayHelper(resources);
 
         final String currentCountryIso = GeoUtil.getCurrentCountryIso(mContext);
         final ContactInfoHelper contactInfoHelper =
@@ -229,7 +229,7 @@ class CallStatsAdapter extends ArrayAdapter<CallStatsDetails>
 
     private void setPhoto(CallStatsListItemViews views, long photoId, Uri contactUri) {
         views.quickContactView.assignContactUri(contactUri);
-        mContactPhotoManager.loadThumbnail(views.quickContactView, photoId, false);
+        mContactPhotoManager.loadThumbnail(views.quickContactView, photoId, false, null);
     }
 
     @Override

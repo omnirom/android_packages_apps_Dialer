@@ -37,7 +37,7 @@ import com.android.dialer.CallDetailHeader;
 import com.android.dialer.R;
 import com.android.dialer.calllog.ContactInfo;
 import com.android.dialer.calllog.ContactInfoHelper;
-import com.android.dialer.calllog.PhoneNumberHelper;
+import com.android.dialer.calllog.PhoneNumberDisplayHelper;
 import com.android.dialer.calllog.PhoneNumberUtilsWrapper;
 import com.android.dialer.widget.PieChartView;
 
@@ -93,7 +93,7 @@ public class CallStatsDetailActivity extends Activity {
 
         mResources = getResources();
 
-        PhoneNumberHelper phoneNumberHelper = new PhoneNumberHelper(mResources);
+        PhoneNumberDisplayHelper phoneNumberHelper = new PhoneNumberDisplayHelper(mResources);
         mCallDetailHeader = new CallDetailHeader(this, phoneNumberHelper);
         mCallStatsDetailHelper = new CallStatsDetailHelper(mResources,
                 new PhoneNumberUtilsWrapper());
