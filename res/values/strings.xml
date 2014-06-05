@@ -463,6 +463,8 @@
     -->
     <string name="description_num_calls"><xliff:g id="numberOfCalls">%1$s</xliff:g> calls.</string>
 
+    <!-- The string used to represent an unknown location for a phone number in the call log [CHAR LIMIT=3] -->
+    <string name="call_log_empty_gecode">\u0020</string>
 
     <!-- Call history description for a missed call from a caller.
 
