@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  Copyright (C) 2014 The OmniROM Project
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="call_log_stats_title">Estadísticas</string>
+    <string name="callStatsDetailTitle">Datos estadísticos de llamadas</string>
+    <string name="call_stats">Estadísticas de llamadas</string>
+    <string name="call_stats_refresh">Recargar</string>
+    <string name="activity_title_call_stats">Estadísticas de llamadas</string>
+    <string name="call_stats_nav_all">Todas</string>
+    <string name="call_stats_nav_incoming">Entrantes</string>
+    <string name="call_stats_nav_outgoing">Salientes</string>
+    <string name="call_stats_nav_missed">Perdidas</string>
+    <string name="call_stats_incoming">Entrantes : <xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="call_stats_outgoing">Salientes : <xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="call_stats_missed">Perdidas</string>
+    <string name="call_stats_missed_percent">Perdidas : <xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="call_stats_header_total">Total : <xliff:g id="call_count">%s</xliff:g>, <xliff:g id="duration">%s</xliff:g></string>
+    <string name="call_stats_header_total_callsonly">Total : <xliff:g id="call_count">%s</xliff:g></string>
+    <string name="call_stats_filter_from">Desde</string>
+    <string name="call_stats_filter_to">Hasta</string>
+    <string name="call_stats_filter_picker_title">Filtrar lapso temporal</string>
+    <string name="date_quick_selection">Selección rápida</string>
+    <string name="date_qs_currentmonth">Mes actual</string>
+    <string name="date_qs_currentquarter">Trimestre actual</string>
+    <string name="date_qs_currentyear">Año actual</string>
+    <string name="date_qs_lastweek">Semana pasada</string>
+    <string name="date_qs_lastmonth">Mes pasado</string>
+    <string name="date_qs_lastquarter">Trimestre pasado</string>
+    <string name="date_qs_lastyear">Año pasado</string>
+    <string name="call_stats_date_filter">Filtrar lapso temporal</string>
+    <string name="call_stats_reset_filter">Restablecer lapso temporal</string>
+    <string name="call_stats_sort_by_duration">Ordenar por duración</string>
+    <string name="call_stats_sort_by_count">Ordenar por número de llamadas</string>
+    <string name="menu_add_to_blacklist">Añadir a la lista negra</string>
+    <string name="toast_added_to_blacklist">%s añadido a la lista negra</string>
+    <string name="nearby_places">Lugares cercanos</string>
+    <string name="nearby_places_distance">A %1$.1f kms</string>
+    <string name="recentCalls_reverseLookup">Búsqueda telefónica inversa</string>
+    <string name="toast_reverse_lookup">Buscando por %1$s en %2$s...</string>
+    <string name="toast_reverse_lookup_failed">Sin coincidencias.</string>
+    <string name="toast_reverse_lookup_finished">Búsqueda inversa finalizada.</string>
+</resources>
