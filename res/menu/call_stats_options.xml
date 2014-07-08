@@ -26,6 +26,12 @@
         android:title="@string/call_stats_date_filter"/>
 
     <item
+        android:id="@+id/date_filter_adjust"
+        android:showAsAction="never"
+        android:visible="false"
+        android:title="@string/call_stats_date_adjust"/>
+
+    <item
         android:id="@+id/reset_date_filter"
         android:showAsAction="never"
         android:visible="false"

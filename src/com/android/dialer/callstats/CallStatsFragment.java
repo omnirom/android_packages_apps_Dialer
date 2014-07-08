@@ -75,6 +75,7 @@ public class CallStatsFragment extends ListFragment implements
     private long mFilterFrom = -1;
     private long mFilterTo = -1;
     private boolean mSortByDuration = true;
+    private boolean mDateIsFiltered = false;
     private boolean mDataLoaded = false;
 
     private CallStatsAdapter mAdapter;
@@ -155,11 +156,15 @@ public class CallStatsFragment extends ListFragment implements
         inflater.inflate(R.menu.call_stats_options, menu);
 
         final MenuItem resetItem = menu.findItem(R.id.reset_date_filter);
+        final MenuItem dateFilter = menu.findItem(R.id.date_filter);
+        final MenuItem dateFilterAd = menu.findItem(R.id.date_filter_adjust);
         final MenuItem sortDurationItem = menu.findItem(R.id.sort_by_duration);
         final MenuItem sortCountItem = menu.findItem(R.id.sort_by_count);
         final MenuItem filterItem = menu.findItem(R.id.filter);
 
         resetItem.setVisible(mFilterFrom != -1);
+        dateFilter.setVisible(!mDateIsFiltered);
+        dateFilterAd.setVisible(mDateIsFiltered);
         sortDurationItem.setVisible(!mSortByDuration);
         sortCountItem.setVisible(mSortByDuration);
 
@@ -177,7 +182,8 @@ public class CallStatsFragment extends ListFragment implements
     public boolean onOptionsItemSelected(MenuItem item) {
         final int itemId = item.getItemId();
         switch (itemId) {
-            case R.id.date_filter: {
+            case R.id.date_filter:
+            case R.id.date_filter_adjust: {
                 final DoubleDatePickerDialog.Fragment fragment =
                         new DoubleDatePickerDialog.Fragment();
                 fragment.setArguments(DoubleDatePickerDialog.Fragment.createArguments(
@@ -186,6 +192,7 @@ public class CallStatsFragment extends ListFragment implements
                 break;
             }
             case R.id.reset_date_filter: {
+                mDateIsFiltered = false;
                 mFilterFrom = -1;
                 mFilterTo = -1;
                 fetchCalls();
@@ -220,6 +227,7 @@ public class CallStatsFragment extends ListFragment implements
     public void onDateSet(long from, long to) {
         mFilterFrom = from;
         mFilterTo = to;
+        mDateIsFiltered = true;
         getActivity().invalidateOptionsMenu();
         fetchCalls();
     }
