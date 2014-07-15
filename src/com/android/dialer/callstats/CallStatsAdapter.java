@@ -24,8 +24,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.text.TextUtils;
 
 import com.android.contacts.common.ContactPhotoManager;
+import com.android.contacts.common.ContactPhotoManager.DefaultImageRequest;
 import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.GeoUtil;
 import com.android.dialer.R;
@@ -65,6 +67,8 @@ class CallStatsAdapter extends ArrayAdapter<CallStatsDetails>
     private final CallDataLoader mDataLoader;
     private final CallLogAdapterHelper mAdapterHelper;
     private final CallStatsDetailHelper mCallStatsDetailHelper;
+    private final ContactInfoHelper mContactInfoHelper;
+    private PhoneNumberDisplayHelper mPhoneNumberHelper;
 
     private ArrayList<CallStatsDetails> mAllItems;
     private CallStatsDetails mTotalItem;
@@ -109,14 +113,13 @@ class CallStatsAdapter extends ArrayAdapter<CallStatsDetails>
         mInfoLookup = new ConcurrentHashMap<ContactInfo, CallStatsDetails>();
 
         Resources resources = mContext.getResources();
-        PhoneNumberDisplayHelper phoneNumberHelper = new PhoneNumberDisplayHelper(resources);
+        mPhoneNumberHelper = new PhoneNumberDisplayHelper(resources);
 
         final String currentCountryIso = GeoUtil.getCurrentCountryIso(mContext);
-        final ContactInfoHelper contactInfoHelper =
-                new ContactInfoHelper(mContext, currentCountryIso);
+        mContactInfoHelper = new ContactInfoHelper(mContext, currentCountryIso);
 
         mAdapterHelper = new CallLogAdapterHelper(mContext, this,
-                contactInfoHelper, phoneNumberHelper);
+                mContactInfoHelper, mPhoneNumberHelper);
         mContactPhotoManager = ContactPhotoManager.getInstance(mContext);
         mCallStatsDetailHelper = new CallStatsDetailHelper(resources,
                 new PhoneNumberUtilsWrapper());
@@ -208,6 +211,10 @@ class CallStatsAdapter extends ArrayAdapter<CallStatsDetails>
         final CallStatsListItemViews views = (CallStatsListItemViews) v.getTag();
         final CallStatsDetails details = getItem(position);
         final CallStatsDetails first = getItem(0);
+        final Uri lookupUri = details.lookupUri;
+        final String name = details.name;
+        final boolean isVoicemailNumber =
+                PhoneNumberUtilsWrapper.INSTANCE.isVoicemailNumber(details.number);
 
         views.primaryActionView.setVisibility(View.VISIBLE);
         views.primaryActionView.setTag(IntentProvider.getCallStatsDetailIntentProvider(
@@ -215,7 +222,27 @@ class CallStatsAdapter extends ArrayAdapter<CallStatsDetails>
 
         mCallStatsDetailHelper.setCallStatsDetails(views.callStatsDetailViews,
                 details, first, mTotalItem, mType, mSortByDuration);
-        setPhoto(views, details.photoId, details.contactUri);
+
+        int contactType = ContactPhotoManager.TYPE_DEFAULT;
+
+        if (isVoicemailNumber) {
+            contactType = ContactPhotoManager.TYPE_VOICEMAIL;
+        } else if (mContactInfoHelper.isBusiness(details.sourceType)) {
+            contactType = ContactPhotoManager.TYPE_BUSINESS;
+        }
+
+        String lookupKey = lookupUri == null ? null
+                : ContactInfoHelper.getLookupKeyFromUri(lookupUri);
+
+        String nameForDefaultImage = null;
+        if (TextUtils.isEmpty(name)) {
+            nameForDefaultImage = mPhoneNumberHelper.getDisplayNumber(details.number,
+                    details.numberPresentation, details.formattedNumber).toString();
+        } else {
+            nameForDefaultImage = name;
+        }
+
+        setPhoto(views, details.photoId, details.contactUri, nameForDefaultImage, lookupKey, contactType);
 
         // Listen for the first draw
         mAdapterHelper.registerOnPreDrawListener(v);
@@ -227,9 +254,13 @@ class CallStatsAdapter extends ArrayAdapter<CallStatsDetails>
         view.setTag(views);
     }
 
-    private void setPhoto(CallStatsListItemViews views, long photoId, Uri contactUri) {
+    private void setPhoto(CallStatsListItemViews views, long photoId, Uri contactUri,
+            String displayName, String identifier, int contactType) {
         views.quickContactView.assignContactUri(contactUri);
-        mContactPhotoManager.loadThumbnail(views.quickContactView, photoId, false, null);
+        DefaultImageRequest request = new DefaultImageRequest(displayName, identifier,
+                contactType);
+        mContactPhotoManager.loadThumbnail(views.quickContactView, photoId, false /* darkTheme */,
+                request);
     }
 
     @Override

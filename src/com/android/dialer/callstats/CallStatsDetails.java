@@ -47,6 +47,8 @@ public class CallStatsDetails implements CallDetailHeader.Data, Parcelable {
     public int incomingCount;
     public int outgoingCount;
     public int missedCount;
+    public Uri lookupUri;
+    public int sourceType;
 
     public CallStatsDetails(CharSequence number, int numberPresentation,
             ContactInfo info, String countryIso, String geocode, long date) {
@@ -102,6 +104,8 @@ public class CallStatsDetails implements CallDetailHeader.Data, Parcelable {
         this.contactUri = info.lookupUri;
         this.photoUri = info.photoUri;
         this.photoId = info.photoId;
+        this.lookupUri = info.lookupUri;
+        this.sourceType = info.sourceType;
     }
 
     public long getFullDuration() {
@@ -203,6 +207,8 @@ public class CallStatsDetails implements CallDetailHeader.Data, Parcelable {
         out.writeInt(incomingCount);
         out.writeInt(outgoingCount);
         out.writeInt(missedCount);
+        out.writeParcelable(lookupUri, flags);
+        out.writeInt(sourceType);
     }
 
     public static final Parcelable.Creator<CallStatsDetails> CREATOR =
@@ -234,5 +240,7 @@ public class CallStatsDetails implements CallDetailHeader.Data, Parcelable {
         incomingCount = in.readInt();
         outgoingCount = in.readInt();
         missedCount = in.readInt();
+        lookupUri = in.readParcelable(null);
+        sourceType = in.readInt();
     }
 }
