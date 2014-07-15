@@ -42,8 +42,8 @@
             android:id="@+id/quick_contact_photo"
             android:layout_width="@dimen/call_log_list_contact_photo_size"
             android:layout_height="@dimen/call_log_list_contact_photo_size"
-            android:layout_marginBottom="@dimen/call_log_icon_margin"
-            android:layout_marginTop="@dimen/call_log_icon_margin"
+            android:layout_marginBottom="@dimen/call_log_inner_margin"
+            android:layout_marginTop="@dimen/call_log_inner_margin"
             android:layout_rowSpan="3"
             android:focusable="true"
             android:nextFocusRight="@id/primary_action_view" />
