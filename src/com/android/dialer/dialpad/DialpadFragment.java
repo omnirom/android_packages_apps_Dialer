@@ -81,6 +81,7 @@ import com.android.internal.telephony.ITelephony;
 import com.android.phone.common.CallLogAsync;
 import com.android.phone.common.HapticFeedback;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.internal.util.slim.QuietHoursHelper;
 
 import java.util.HashSet;
 
@@ -1232,7 +1233,8 @@ public class DialpadFragment extends Fragment
      */
     private void playTone(int tone, int durationMs) {
         // if local tone playback is disabled, just return.
-        if (!mDTMFToneEnabled) {
+        if (!mDTMFToneEnabled ||
+                QuietHoursHelper.inQuietHours(getActivity(), Settings.System.QUIET_HOURS_SYSTEM)) {
             return;
         }
 
