@@ -140,7 +140,7 @@ public class SmartDialPrefix {
         Locale locale = context.getResources().getConfiguration().locale;
 
         // Override with t9 search input locale from settings if provided
-        String overrideLocaleString = android.provider.Settings.System.getString(
+        /*String overrideLocaleString = android.provider.Settings.System.getString(
                 context.getContentResolver(),
                 android.provider.Settings.System.T9_SEARCH_INPUT_LOCALE);
         if (overrideLocaleString != null && !overrideLocaleString.isEmpty()) {
@@ -149,7 +149,7 @@ public class SmartDialPrefix {
             String country = tokens.length > 1 ? tokens[1] : "";
             String variant = tokens.length > 2 ? tokens[2] : "";
             locale = new Locale(lang, country, variant);
-        }
+        }*/
 
         return locale;
     }
