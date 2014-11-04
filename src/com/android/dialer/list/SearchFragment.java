@@ -16,33 +16,60 @@
 package com.android.dialer.list;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.view.animation.Interpolator;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
-import android.widget.Toast;
+import android.widget.ListView;
 
 import com.android.contacts.common.list.ContactEntryListAdapter;
 import com.android.contacts.common.list.ContactListItemView;
 import com.android.contacts.common.list.OnPhoneNumberPickerActionListener;
 import com.android.contacts.common.list.PhoneNumberPickerFragment;
+import com.android.contacts.common.util.ViewUtil;
 import com.android.dialer.DialtactsActivity;
 import com.android.dialer.R;
-import com.android.dialer.dialpad.DialpadFragment;
-import com.android.dialer.list.OnListFragmentScrolledListener;
+import com.android.dialer.util.DialerUtils;
+import com.android.phone.common.animation.AnimUtils;
 
 public class SearchFragment extends PhoneNumberPickerFragment {
 
     private OnListFragmentScrolledListener mActivityScrollListener;
+
+    /*
+     * Stores the untouched user-entered string that is used to populate the add to contacts
+     * intent.
+     */
+    private String mAddToContactNumber;
+    private int mActionBarHeight;
+    private int mShadowHeight;
+    private int mPaddingTop;
+    private int mShowDialpadDuration;
+    private int mHideDialpadDuration;
+
+    private HostInterface mActivity;
+
+    public interface HostInterface {
+        public boolean isActionBarShowing();
+        public boolean isDialpadShown();
+        public int getActionBarHideOffset();
+        public int getActionBarHeight();
+    }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
         setQuickContactEnabled(true);
+        setAdjustSelectionBoundsEnabled(false);
         setDarkTheme(false);
-        setPhotoPosition(ContactListItemView.getDefaultPhotoPosition(true /* opposite */));
+        setPhotoPosition(ContactListItemView.getDefaultPhotoPosition(false /* opposite */));
         setUseCallableUri(true);
+        sendScreenView();
 
         try {
             mActivityScrollListener = (OnListFragmentScrolledListener) activity;
@@ -58,7 +85,24 @@ public class SearchFragment extends PhoneNumberPickerFragment {
         if (isSearchMode()) {
             getAdapter().setHasHeader(0, false);
         }
-        getListView().setOnScrollListener(new OnScrollListener() {
+
+        mActivity = (HostInterface) getActivity();
+
+        final Resources res = getResources();
+        mActionBarHeight = mActivity.getActionBarHeight();
+        mShadowHeight  = res.getDrawable(R.drawable.search_shadow).getIntrinsicHeight();
+        mPaddingTop = res.getDimensionPixelSize(R.dimen.search_list_padding_top);
+        mShowDialpadDuration = res.getInteger(R.integer.dialpad_slide_in_duration);
+        mHideDialpadDuration = res.getInteger(R.integer.dialpad_slide_out_duration);
+
+        final View parentView = getView();
+
+        final ListView listView = getListView();
+
+        listView.setBackgroundColor(res.getColor(R.color.background_dialer_results));
+        listView.setClipToPadding(false);
+        setVisibleScrollbarEnabled(false);
+        listView.setOnScrollListener(new OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 mActivityScrollListener.onListFragmentScrollStateChange(scrollState);
@@ -69,6 +113,14 @@ public class SearchFragment extends PhoneNumberPickerFragment {
                     int totalItemCount) {
             }
         });
+
+        updatePosition(false /* animate */);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ViewUtil.addBottomPaddingToListViewForFab(getListView(), getResources());
     }
 
     @Override
@@ -79,6 +131,10 @@ public class SearchFragment extends PhoneNumberPickerFragment {
         if (adapter != null) {
             adapter.setHasHeader(0, false);
         }
+    }
+
+    public void setAddToContactNumber(String addToContactNumber) {
+        mAddToContactNumber = addToContactNumber;
     }
 
     @Override
@@ -93,38 +149,70 @@ public class SearchFragment extends PhoneNumberPickerFragment {
     protected void onItemClick(int position, long id) {
         final DialerPhoneNumberListAdapter adapter = (DialerPhoneNumberListAdapter) getAdapter();
         final int shortcutType = adapter.getShortcutTypeFromPosition(position);
-        final int suggestionIndex = adapter.getSuggestionIndexFromPosition(position);
+        final OnPhoneNumberPickerActionListener listener;
 
-        if (shortcutType == DialerPhoneNumberListAdapter.SHORTCUT_INVALID) {
-            if (suggestionIndex >= 0) {
-                final OnPhoneNumberPickerActionListener listener =
-                        getOnPhoneNumberPickerListener();
-                if (listener != null) {
-                    listener.onCallNumberDirectly(adapter.getSuggestionPhoneNumber(position));
-                }
-            } else {
+        switch (shortcutType) {
+            case DialerPhoneNumberListAdapter.SHORTCUT_INVALID:
                 super.onItemClick(position, id);
-            }
-        } else if (shortcutType == DialerPhoneNumberListAdapter.SHORTCUT_DIRECT_CALL) {
-            final OnPhoneNumberPickerActionListener listener =
-                    getOnPhoneNumberPickerListener();
-            if (listener != null) {
-                listener.onCallNumberDirectly(getQueryString());
-            }
-        } else if (shortcutType == DialerPhoneNumberListAdapter.SHORTCUT_ADD_NUMBER_TO_CONTACTS) {
-            final String number = adapter.getFormattedQueryString();
-            final Intent intent = DialtactsActivity.getAddNumberToContactIntent(number);
-            startActivityWithErrorToast(intent);
+                break;
+            case DialerPhoneNumberListAdapter.SHORTCUT_DIRECT_CALL:
+                listener = getOnPhoneNumberPickerListener();
+                if (listener != null) {
+                    listener.onCallNumberDirectly(getQueryString());
+                }
+                break;
+            case DialerPhoneNumberListAdapter.SHORTCUT_ADD_NUMBER_TO_CONTACTS:
+                final String number = TextUtils.isEmpty(mAddToContactNumber) ?
+                        adapter.getFormattedQueryString() : mAddToContactNumber;
+                final Intent intent = DialtactsActivity.getAddNumberToContactIntent(number);
+                DialerUtils.startActivityWithErrorToast(getActivity(), intent,
+                        R.string.add_contact_not_available);
+                break;
+            case DialerPhoneNumberListAdapter.SHORTCUT_MAKE_VIDEO_CALL:
+                listener = getOnPhoneNumberPickerListener();
+                if (listener != null) {
+                    listener.onCallNumberDirectly(getQueryString(), true /* isVideoCall */);
+                }
+                break;
         }
     }
 
-    private void startActivityWithErrorToast(Intent intent) {
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Toast toast = Toast.makeText(getActivity(), R.string.add_contact_not_available,
-                    Toast.LENGTH_SHORT);
-            toast.show();
+    /**
+     * Updates the position and padding of the search fragment, depending on whether the dialpad is
+     * shown. This can be optionally animated.
+     * @param animate
+     */
+    public void updatePosition(boolean animate) {
+        // Use negative shadow height instead of 0 to account for the 9-patch's shadow.
+        int startTranslationValue =
+                mActivity.isDialpadShown() ? mActionBarHeight - mShadowHeight: -mShadowHeight;
+        int endTranslationValue = 0;
+        // Prevents ListView from being translated down after a rotation when the ActionBar is up.
+        if (animate || mActivity.isActionBarShowing()) {
+            endTranslationValue =
+                    mActivity.isDialpadShown() ? 0 : mActionBarHeight -mShadowHeight;
         }
+        if (animate) {
+            Interpolator interpolator =
+                    mActivity.isDialpadShown() ? AnimUtils.EASE_IN : AnimUtils.EASE_OUT ;
+            int duration =
+                    mActivity.isDialpadShown() ? mShowDialpadDuration : mHideDialpadDuration;
+            getView().setTranslationY(startTranslationValue);
+            getView().animate()
+                    .translationY(endTranslationValue)
+                    .setInterpolator(interpolator)
+                    .setDuration(duration);
+        } else {
+            getView().setTranslationY(endTranslationValue);
+        }
+
+        // There is padding which should only be applied when the dialpad is not shown.
+        int paddingTop = mActivity.isDialpadShown() ? 0 : mPaddingTop;
+        final ListView listView = getListView();
+        listView.setPaddingRelative(
+                listView.getPaddingStart(),
+                paddingTop,
+                listView.getPaddingEnd(),
+                listView.getPaddingBottom());
     }
 }

@@ -24,9 +24,7 @@
     <!-- Shown only when an Account filter is set.
          - paddingTop should be here to show "shade" effect correctly. -->
     <!-- TODO: Remove the filter header. -->
-    <include
-        android:id="@+id/account_filter_header_container"
-        layout="@layout/account_filter_header" />
+    <include layout="@layout/account_filter_header" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -38,12 +36,19 @@
             android:id="@android:id/list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="?attr/contact_browser_list_padding_left"
-            android:layout_marginRight="?attr/contact_browser_list_padding_right"
             android:layout_marginStart="?attr/contact_browser_list_padding_left"
             android:layout_marginEnd="?attr/contact_browser_list_padding_right"
+            android:paddingTop="18dp"
             android:fastScrollEnabled="true"
-            android:fadingEdge="none"/>
+            android:fadingEdge="none"
+            android:nestedScrollingEnabled="true" />
     </FrameLayout>
+
+    <include
+        android:id="@+id/empty_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        layout="@layout/empty_list_view"
+        android:visibility="gone"/>
 
 </LinearLayout>

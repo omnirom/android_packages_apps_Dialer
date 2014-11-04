@@ -34,6 +34,7 @@ public interface CachedNumberLookupService {
     public boolean isCacheUri(String uri);
 
     public boolean isBusiness(int sourceType);
+    public boolean canReportAsInvalid(int sourceType, String objectId);
 
     public boolean addPhoto(Context context, String number, byte[] photo);
 

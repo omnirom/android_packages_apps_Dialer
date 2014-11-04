@@ -48,4 +48,6 @@
         <attr name="outlineColor" format="color" />
     </declare-styleable>
 
+    <declare-styleable name="SearchEditTextLayout" />
+
 </resources>

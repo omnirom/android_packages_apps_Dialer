@@ -31,6 +31,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.contacts.common.util.Constants;
+import com.android.contacts.common.util.PhoneNumberHelper;
 import com.android.contacts.common.util.UriUtils;
 import com.android.dialer.R;
 import com.android.dialer.omni.CachedPlacesService;
@@ -102,13 +103,13 @@ public class ContactInfoHelper {
         ContactInfo info;
 
         // Determine the contact info.
-        if (PhoneNumberUtils.isUriNumber(number)) {
+        if (PhoneNumberHelper.isUriNumber(number)) {
             // This "number" is really a SIP address.
             ContactInfo sipInfo = queryContactInfoForSipAddress(number);
             if (sipInfo == null || sipInfo == ContactInfo.EMPTY) {
                 // Check whether the "username" part of the SIP address is
                 // actually the phone number of a contact.
-                String username = PhoneNumberUtils.getUsernameFromUriNumber(number);
+                String username = PhoneNumberHelper.getUsernameFromUriNumber(number);
                 if (PhoneNumberUtils.isGlobalPhoneNumber(username)) {
                     sipInfo = queryContactInfoForPhoneNumber(username, countryIso);
                 }
@@ -142,6 +143,8 @@ public class ContactInfoHelper {
                 updatedInfo = new ContactInfo();
                 updatedInfo.number = number;
                 updatedInfo.formattedNumber = formatPhoneNumber(number, null, countryIso);
+                updatedInfo.normalizedNumber = PhoneNumberUtils.formatNumberToE164(
+                        number, countryIso);
                 updatedInfo.lookupUri = createTemporaryContactUri(updatedInfo.formattedNumber);
             } else {
                 updatedInfo = info;
@@ -270,7 +273,11 @@ public class ContactInfoHelper {
         } else if (mCachedNumberLookupService != null) {
             CachedContactInfo cacheInfo =
                     mCachedNumberLookupService.lookupCachedContactFromNumber(mContext, number);
-            info = cacheInfo != null ? cacheInfo.getContactInfo() : null;
+            if (cacheInfo != null) {
+                info = cacheInfo.getContactInfo().isBadData ? null : cacheInfo.getContactInfo();
+            } else {
+                info = null;
+            }
         }
         return info;
     }
@@ -358,7 +365,7 @@ public class ContactInfoHelper {
             return "";
         }
         // If "number" is really a SIP address, don't try to do any formatting at all.
-        if (PhoneNumberUtils.isUriNumber(number)) {
+        if (PhoneNumberHelper.isUriNumber(number)) {
             return number;
         }
         if (TextUtils.isEmpty(countryIso)) {
@@ -379,7 +386,7 @@ public class ContactInfoHelper {
             final List<String> segments = lookupUri.getPathSegments();
             // This returns the third path segment of the uri, where the lookup key is located.
             // See {@link android.provider.ContactsContract.Contacts#CONTENT_LOOKUP_URI}.
-            return (segments.size() < 3) ? null : segments.get(2);
+            return (segments.size() < 3) ? null : Uri.encode(segments.get(2));
         } else {
             return null;
         }
@@ -423,4 +430,19 @@ public class ContactInfoHelper {
         return mCachedNumberLookupService != null
                 && mCachedNumberLookupService.isBusiness(sourceType);
     }
+
+    /**
+     * This function looks at a contact's source and determines if the user can
+     * mark caller ids from this source as invalid.
+     *
+     * @param sourceType The source type to be checked
+     * @param objectId The ID of the Contact object.
+     * @return true if contacts from this source can be marked with an invalid caller id
+     */
+    public boolean canReportAsInvalid(int sourceType, String objectId) {
+        return mCachedNumberLookupService != null
+                && mCachedNumberLookupService.canReportAsInvalid(sourceType, objectId);
+    }
+
+
 }

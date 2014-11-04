@@ -68,7 +68,7 @@ public class CallLogAdapterTest extends AndroidTestCase {
         mCursor = new MatrixCursor(CallLogQuery._PROJECTION);
         mCursor.moveToFirst();
         // The views into which to store the data.
-        mView = new View(getContext());
+        mView = new CallLogListItemView(getContext());
         mView.setTag(CallLogListItemViews.createForTest(getContext()));
     }
 
@@ -212,7 +212,7 @@ public class CallLogAdapterTest extends AndroidTestCase {
 
         public TestCallLogAdapter(Context context, CallFetcher callFetcher,
                 ContactInfoHelper contactInfoHelper) {
-            super(context, callFetcher, contactInfoHelper, false, false);
+            super(context, callFetcher, contactInfoHelper, null, null, false);
         }
 
         @Override

@@ -69,7 +69,7 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
     /**
      * SmartDial DB version ranges:
      * <pre>
-     *   0-98   KeyLimePie
+     *   0-98   KitKat
      * </pre>
      */
     public static final int DATABASE_VERSION = 4;
@@ -441,17 +441,19 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
 
     public String getProperty(SQLiteDatabase db, String key, String defaultValue) {
         try {
+            String value = null;
             final Cursor cursor = db.query(Tables.PROPERTIES,
                     new String[] {PropertiesColumns.PROPERTY_VALUE},
                             PropertiesColumns.PROPERTY_KEY + "=?",
                     new String[] {key}, null, null, null);
-            String value = null;
-            try {
-                if (cursor.moveToFirst()) {
-                    value = cursor.getString(0);
+            if (cursor != null) {
+                try {
+                    if (cursor.moveToFirst()) {
+                        value = cursor.getString(0);
+                    }
+                } finally {
+                    cursor.close();
                 }
-            } finally {
-                cursor.close();
             }
             return value != null ? value : defaultValue;
         } catch (SQLiteException e) {
@@ -812,14 +814,6 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
             final Cursor updatedContactCursor = mContext.getContentResolver().query(PhoneQuery.URI,
                     PhoneQuery.PROJECTION, PhoneQuery.SELECTION,
                     new String[]{lastUpdateMillis}, null);
-
-            /** Sets the time after querying the database as the current update time. */
-            final Long currentMillis = System.currentTimeMillis();
-
-            if (DEBUG) {
-                stopWatch.lap("Queried the Contacts database");
-            }
-
             if (updatedContactCursor == null) {
                 if (DEBUG) {
                     Log.e(TAG, "SmartDial query received null for cursor");
@@ -827,18 +821,25 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
                 return;
             }
 
-            /** Prevents the app from reading the dialer database when updating. */
-            sInUpdate.getAndSet(true);
-
-            /** Removes contacts that have been deleted. */
-            removeDeletedContacts(db, lastUpdateMillis);
-            removePotentiallyCorruptedContacts(db, lastUpdateMillis);
-
-            if (DEBUG) {
-                stopWatch.lap("Finished deleting deleted entries");
-            }
+            /** Sets the time after querying the database as the current update time. */
+            final Long currentMillis = System.currentTimeMillis();
 
             try {
+                if (DEBUG) {
+                    stopWatch.lap("Queried the Contacts database");
+                }
+
+                /** Prevents the app from reading the dialer database when updating. */
+                sInUpdate.getAndSet(true);
+
+                /** Removes contacts that have been deleted. */
+                removeDeletedContacts(db, lastUpdateMillis);
+                removePotentiallyCorruptedContacts(db, lastUpdateMillis);
+
+                if (DEBUG) {
+                    stopWatch.lap("Finished deleting deleted entries");
+                }
+
                 /** If the database did not exist before, jump through deletion as there is nothing
                  * to delete.
                  */
@@ -872,12 +873,12 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
                     " WHERE " + SmartDialDbColumns.LAST_SMARTDIAL_UPDATE_TIME +
                     " = " + Long.toString(currentMillis),
                     new String[] {});
-            if (DEBUG) {
-                stopWatch.lap("Queried the smart dial table for contact names");
-            }
-
             if (nameCursor != null) {
                 try {
+                    if (DEBUG) {
+                        stopWatch.lap("Queried the smart dial table for contact names");
+                    }
+
                     /** Inserts prefixes of names into the prefix table.*/
                     insertNamePrefixes(db, nameCursor);
                     if (DEBUG) {
@@ -978,25 +979,27 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
                     " LIKE '" + looseQuery + "')" +
                 " ORDER BY " + SmartDialSortingOrder.SORT_ORDER,
                 new String[] {currentTimeStamp});
-
-        if (DEBUG) {
-            stopWatch.lap("Prefix query completed");
+        if (cursor == null) {
+            return result;
         }
-
-        /** Gets the column ID from the cursor.*/
-        final int columnDataId = 0;
-        final int columnDisplayNamePrimary = 1;
-        final int columnPhotoId = 2;
-        final int columnNumber = 3;
-        final int columnId = 4;
-        final int columnLookupKey = 5;
-        if (DEBUG) {
-            stopWatch.lap("Found column IDs");
-        }
-
-        final Set<ContactMatch> duplicates = new HashSet<ContactMatch>();
-        int counter = 0;
         try {
+            if (DEBUG) {
+                stopWatch.lap("Prefix query completed");
+            }
+
+            /** Gets the column ID from the cursor.*/
+            final int columnDataId = 0;
+            final int columnDisplayNamePrimary = 1;
+            final int columnPhotoId = 2;
+            final int columnNumber = 3;
+            final int columnId = 4;
+            final int columnLookupKey = 5;
+            if (DEBUG) {
+                stopWatch.lap("Found column IDs");
+            }
+
+            final Set<ContactMatch> duplicates = new HashSet<ContactMatch>();
+            int counter = 0;
             if (DEBUG) {
                 stopWatch.lap("Moved cursor to start");
             }
@@ -1031,7 +1034,7 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
                             photoId));
                     counter++;
                     if (DEBUG) {
-                        stopWatch.lap("Added one result");
+                        stopWatch.lap("Added one result: Name: " + displayName);
                     }
                 }
             }

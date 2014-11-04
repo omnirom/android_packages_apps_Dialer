@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.provider.ContactsContract.PhoneLookup;
 import android.provider.ContactsContract.PinnedPositions;
 import android.text.TextUtils;
@@ -55,12 +56,10 @@ public class UndemoteOutgoingCallReceiver extends BroadcastReceiver {
     }
 
     private void undemoteContactWithId(Context context, long id) {
-        final ContentValues cv = new ContentValues(1);
-        cv.put(String.valueOf(id), PinnedPositions.UNDEMOTE);
         // If the contact is not demoted, this will not do anything. Otherwise, it will
         // restore it to an unpinned position. If it was a frequently called contact, it will
         // show up once again show up on the favorites screen.
-        context.getContentResolver().update(PinnedPositions.UPDATE_URI, cv, null, null);
+        PinnedPositions.undemote(context.getContentResolver(), id);
     }
 
     private long getContactIdFromPhoneNumber(Context context, String number) {

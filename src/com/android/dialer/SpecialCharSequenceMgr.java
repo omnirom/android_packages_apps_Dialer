@@ -20,7 +20,6 @@ import android.app.AlertDialog;
 import android.app.KeyguardManager;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -28,8 +27,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Looper;
-import android.os.RemoteException;
-import android.os.ServiceManager;
+import android.provider.Settings;
+import android.telecom.TelecomManager;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -37,10 +36,8 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.common.io.MoreCloseables;
 import com.android.contacts.common.database.NoNullCursorAsyncQueryHandler;
-import com.android.internal.telephony.ITelephony;
-import com.android.internal.telephony.TelephonyCapabilities;
-import com.android.internal.telephony.TelephonyIntents;
 
 /**
  * Helper class to listen for some magic character sequences
@@ -57,6 +54,7 @@ import com.android.internal.telephony.TelephonyIntents;
 public class SpecialCharSequenceMgr {
     private static final String TAG = "SpecialCharSequenceMgr";
 
+    private static final String SECRET_CODE_ACTION = "android.provider.Telephony.SECRET_CODE";
     private static final String MMI_IMEI_DISPLAY = "*#06#";
     private static final String MMI_REGULATORY_INFO_DISPLAY = "*#07#";
 
@@ -136,7 +134,7 @@ public class SpecialCharSequenceMgr {
         // Secret codes are in the form *#*#<code>#*#*
         int len = input.length();
         if (len > 8 && input.startsWith("*#*#") && input.endsWith("#*#*")) {
-            Intent intent = new Intent(TelephonyIntents.SECRET_CODE_ACTION,
+            final Intent intent = new Intent(SECRET_CODE_ACTION,
                     Uri.parse("android_secret_code://" + input.substring(4, len - 4)));
             context.sendBroadcast(intent);
             return true;
@@ -158,7 +156,7 @@ public class SpecialCharSequenceMgr {
         TelephonyManager telephonyManager =
                 (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (telephonyManager == null
-                || !TelephonyCapabilities.supportsAdn(telephonyManager.getCurrentPhoneType())) {
+                || telephonyManager.getPhoneType() != TelephonyManager.PHONE_TYPE_GSM) {
             return false;
         }
 
@@ -228,13 +226,9 @@ public class SpecialCharSequenceMgr {
 
     static boolean handlePinEntry(Context context, String input) {
         if ((input.startsWith("**04") || input.startsWith("**05")) && input.endsWith("#")) {
-            try {
-                return ITelephony.Stub.asInterface(ServiceManager.getService("phone"))
-                        .handlePinMmi(input);
-            } catch (RemoteException e) {
-                Log.e(TAG, "Failed to handlePinMmi due to remote exception");
-                return false;
-            }
+            TelecomManager telecomManager =
+                    (TelecomManager) context.getSystemService(Context.TELECOM_SERVICE);
+            return telecomManager.handleMmi(input);
         }
         return false;
     }
@@ -243,7 +237,7 @@ public class SpecialCharSequenceMgr {
         TelephonyManager telephonyManager =
                 (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (telephonyManager != null && input.equals(MMI_IMEI_DISPLAY)) {
-            int phoneType = telephonyManager.getCurrentPhoneType();
+            int phoneType = telephonyManager.getPhoneType();
             if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
                 showIMEIPanel(context, useSystemWindow, telephonyManager);
                 return true;
@@ -259,10 +253,7 @@ public class SpecialCharSequenceMgr {
     private static boolean handleRegulatoryInfoDisplay(Context context, String input) {
         if (input.equals(MMI_REGULATORY_INFO_DISPLAY)) {
             Log.d(TAG, "handleRegulatoryInfoDisplay() sending intent to settings app");
-            ComponentName regInfoDisplayActivity = new ComponentName(
-                    "com.android.settings", "com.android.settings.RegulatoryInfoDisplayActivity");
-            Intent showRegInfoIntent = new Intent("android.settings.SHOW_REGULATORY_INFO");
-            showRegInfoIntent.setComponent(regInfoDisplayActivity);
+            Intent showRegInfoIntent = new Intent(Settings.ACTION_SHOW_REGULATORY_INFO);
             try {
                 context.startActivity(showRegInfoIntent);
             } catch (ActivityNotFoundException e) {
@@ -387,34 +378,38 @@ public class SpecialCharSequenceMgr {
          */
         @Override
         protected void onNotNullableQueryComplete(int token, Object cookie, Cursor c) {
-            sPreviousAdnQueryHandler = null;
-            if (mCanceled) {
-                return;
-            }
+            try {
+                sPreviousAdnQueryHandler = null;
+                if (mCanceled) {
+                    return;
+                }
 
-            SimContactQueryCookie sc = (SimContactQueryCookie) cookie;
+                SimContactQueryCookie sc = (SimContactQueryCookie) cookie;
 
-            // close the progress dialog.
-            sc.progressDialog.dismiss();
+                // close the progress dialog.
+                sc.progressDialog.dismiss();
 
-            // get the EditText to update or see if the request was cancelled.
-            EditText text = sc.getTextField();
+                // get the EditText to update or see if the request was cancelled.
+                EditText text = sc.getTextField();
 
-            // if the textview is valid, and the cursor is valid and postionable
-            // on the Nth number, then we update the text field and display a
-            // toast indicating the caller name.
-            if ((c != null) && (text != null) && (c.moveToPosition(sc.contactNum))) {
-                String name = c.getString(c.getColumnIndexOrThrow(ADN_NAME_COLUMN_NAME));
-                String number = c.getString(c.getColumnIndexOrThrow(ADN_PHONE_NUMBER_COLUMN_NAME));
+                // if the textview is valid, and the cursor is valid and postionable
+                // on the Nth number, then we update the text field and display a
+                // toast indicating the caller name.
+                if ((c != null) && (text != null) && (c.moveToPosition(sc.contactNum))) {
+                    String name = c.getString(c.getColumnIndexOrThrow(ADN_NAME_COLUMN_NAME));
+                    String number = c.getString(c.getColumnIndexOrThrow(ADN_PHONE_NUMBER_COLUMN_NAME));
 
-                // fill the text in.
-                text.getText().replace(0, 0, number);
+                    // fill the text in.
+                    text.getText().replace(0, 0, number);
 
-                // display the name as a toast
-                Context context = sc.progressDialog.getContext();
-                name = context.getString(R.string.menu_callNumber, name);
-                Toast.makeText(context, name, Toast.LENGTH_SHORT)
-                    .show();
+                    // display the name as a toast
+                    Context context = sc.progressDialog.getContext();
+                    name = context.getString(R.string.menu_callNumber, name);
+                    Toast.makeText(context, name, Toast.LENGTH_SHORT)
+                        .show();
+                }
+            } finally {
+                MoreCloseables.closeQuietly(c);
             }
         }
 

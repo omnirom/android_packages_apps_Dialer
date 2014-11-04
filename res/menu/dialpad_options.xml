@@ -15,18 +15,19 @@
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/menu_add_contacts"
-        android:title="@string/recentCalls_addToContact"
-        android:showAsAction="withText"
-        android:orderInCategory="1" />
+        android:id="@+id/menu_add_contact"
+        android:title="@string/add_contact"
+        android:showAsAction="withText" />
     <item
         android:id="@+id/menu_2s_pause"
         android:title="@string/add_2sec_pause"
-        android:showAsAction="withText"
-        android:orderInCategory="1" />
+        android:showAsAction="withText" />
     <item
         android:id="@+id/menu_add_wait"
         android:title="@string/add_wait"
-        android:showAsAction="withText"
-        android:orderInCategory="1" />
+        android:showAsAction="withText" />
+    <item
+        android:id="@+id/menu_send_message"
+        android:title="@string/menu_sendTextMessage"
+        android:showAsAction="withText" />
 </menu>

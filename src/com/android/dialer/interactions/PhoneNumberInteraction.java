@@ -20,7 +20,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.FragmentManager;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
@@ -37,7 +36,6 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.SipAddress;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.PinnedPositions;
 import android.provider.ContactsContract.RawContacts;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,10 +49,12 @@ import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.Collapser;
 import com.android.contacts.common.Collapser.Collapsible;
 import com.android.contacts.common.MoreContactUtils;
-import com.android.contacts.common.activity.TransactionSafeActivity;
 import com.android.contacts.common.util.ContactDisplayUtils;
 import com.android.dialer.R;
+import com.android.dialer.activity.TransactionSafeActivity;
 import com.android.dialer.contact.ContactUpdateService;
+import com.android.dialer.util.DialerUtils;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -122,7 +122,7 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
         }
 
         @Override
-        public boolean shouldCollapseWith(PhoneItem phoneItem) {
+        public boolean shouldCollapseWith(PhoneItem phoneItem, Context context) {
             return MoreContactUtils.shouldCollapse(Phone.CONTENT_ITEM_TYPE, phoneNumber,
                     Phone.CONTENT_ITEM_TYPE, phoneItem.phoneNumber);
         }
@@ -325,7 +325,7 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
                 intent = CallUtil.getCallIntent(phoneNumber, callOrigin);
                 break;
         }
-        context.startActivity(intent);
+        DialerUtils.startActivityWithErrorToast(context, intent);
     }
 
     /**
@@ -380,13 +380,17 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
 
     @Override
     public void onLoadComplete(Loader<Cursor> loader, Cursor cursor) {
-        if (cursor == null || !isSafeToCommitTransactions()) {
+        if (cursor == null) {
             onDismiss();
             return;
         }
-        ArrayList<PhoneItem> phoneList = new ArrayList<PhoneItem>();
-        String primaryPhone = null;
         try {
+            ArrayList<PhoneItem> phoneList = new ArrayList<PhoneItem>();
+            String primaryPhone = null;
+            if (!isSafeToCommitTransactions()) {
+                onDismiss();
+                return;
+            }
             while (cursor.moveToNext()) {
                 if (mContactId == UNKNOWN_CONTACT_ID) {
                     mContactId = cursor.getLong(CONTACT_ID);
@@ -408,27 +412,26 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
 
                 phoneList.add(item);
             }
+
+            if (mUseDefault && primaryPhone != null) {
+                performAction(primaryPhone);
+                onDismiss();
+                return;
+            }
+
+            Collapser.collapseList(phoneList, mContext);
+            if (phoneList.size() == 0) {
+                onDismiss();
+            } else if (phoneList.size() == 1) {
+                PhoneItem item = phoneList.get(0);
+                onDismiss();
+                performAction(item.phoneNumber);
+            } else {
+                // There are multiple candidates. Let the user choose one.
+                showDisambiguationDialog(phoneList);
+            }
         } finally {
             cursor.close();
-        }
-
-        if (mUseDefault && primaryPhone != null) {
-            performAction(primaryPhone);
-            onDismiss();
-            return;
-        }
-
-        Collapser.collapseList(phoneList);
-
-        if (phoneList.size() == 0) {
-            onDismiss();
-        } else if (phoneList.size() == 1) {
-            PhoneItem item = phoneList.get(0);
-            onDismiss();
-            performAction(item.phoneNumber);
-        } else {
-            // There are multiple candidates. Let the user choose one.
-            showDisambiguationDialog(phoneList);
         }
     }
 

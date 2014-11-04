@@ -14,6 +14,11 @@
      limitations under the License.
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_history"
+        android:icon="@drawable/ic_menu_history_lt"
+        android:title="@string/action_menu_call_history_description" />
     <item
         android:id="@+id/menu_import_export"
         android:title="@string/menu_import_export" />
@@ -24,10 +29,7 @@
         android:id="@+id/menu_add_contact"
         android:title="@string/menu_newContact"/>
     <item
-        android:id="@+id/menu_all_contacts"
-        android:title="@string/menu_allContacts"/>
-    <item
         android:id="@+id/menu_call_settings"
-        android:title="@string/call_settings"
+        android:title="@string/dialer_settings_label"
         android:orderInCategory="2" />
 </menu>

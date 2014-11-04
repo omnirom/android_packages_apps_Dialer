@@ -17,12 +17,12 @@
 package com.android.dialer.calllog;
 
 import android.content.Context;
+import android.telecom.PhoneAccountHandle;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.QuickContactBadge;
 import android.widget.TextView;
 
-import com.android.contacts.common.test.NeededForTesting;
+import com.android.contacts.common.testing.NeededForTesting;
 import com.android.dialer.PhoneCallDetailsViews;
 import com.android.dialer.R;
 
@@ -34,47 +34,117 @@ public final class CallLogListItemViews {
     public final QuickContactBadge quickContactView;
     /** The primary action view of the entry. */
     public final View primaryActionView;
-    /** The secondary action view, which includes both the vertical divider line and
-     *  the action button itself.  Used so that the button and divider line can be
-     *  made visible/hidden as a whole. */
-    public final View secondaryActionView;
-    /** The secondary action button on the entry. */
-    public final ImageView secondaryActionButtonView;
     /** The details of the phone call. */
     public final PhoneCallDetailsViews phoneCallDetailsViews;
-    /** The text of the header of a section. */
-    public final TextView listHeaderTextView;
+    /** The text of the header for a day grouping. */
+    public final TextView dayGroupHeader;
+    /** The view containing the details for the call log row, including the action buttons. */
+    public final View callLogEntryView;
+    /** The view containing call log item actions.  Null until the ViewStub is inflated. */
+    public View actionsView;
+    /** The "call back" action button - assigned only when the action section is expanded. */
+    public TextView callBackButtonView;
+    /** The "video call" action button - assigned only when the action section is expanded. */
+    public TextView videoCallButtonView;
+    /** The "voicemail" action button - assigned only when the action section is expanded. */
+    public TextView voicemailButtonView;
+    /** The "details" action button - assigned only when the action section is expanded. */
+    public TextView detailsButtonView;
+    /** The "report" action button. */
+    public TextView reportButtonView;
+
+    /**
+     * The row Id for the first call associated with the call log entry.  Used as a key for the
+     * map used to track which call log entries have the action button section expanded.
+     */
+    public long rowId;
+
+    /**
+     * The call Ids for the calls represented by the current call log entry.  Used when the user
+     * deletes a call log entry.
+     */
+    public long[] callIds;
+
+    /**
+     * The callable phone number for the current call log entry.  Cached here as the call back
+     * intent is set only when the actions ViewStub is inflated.
+     */
+    public String number;
+
+    /**
+     * The phone number presentation for the current call log entry.  Cached here as the call back
+     * intent is set only when the actions ViewStub is inflated.
+     */
+    public int numberPresentation;
+
+    /**
+     * The type of call for the current call log entry.  Cached here as the call back
+     * intent is set only when the actions ViewStub is inflated.
+     */
+    public int callType;
+
+    /**
+     * The account for the current call log entry.  Cached here as the call back
+     * intent is set only when the actions ViewStub is inflated.
+     */
+    public PhoneAccountHandle accountHandle;
+
+    /**
+     * If the call has an associated voicemail message, the URI of the voicemail message for
+     * playback.  Cached here as the voicemail intent is only set when the actions ViewStub is
+     * inflated.
+     */
+    public String voicemailUri;
+
+    /**
+     * The name or number associated with the call.  Cached here for use when setting content
+     * descriptions on buttons in the actions ViewStub when it is inflated.
+     */
+    public CharSequence nameOrNumber;
+
+    /**
+     * Whether or not the item has been reported by user as incorrect.
+     */
+    public boolean reported;
+
+    /**
+     * Whether or not the contact info can be marked as invalid from the source where
+     * it was obtained.
+     */
+    public boolean canBeReportedAsInvalid;
 
     private CallLogListItemViews(QuickContactBadge quickContactView, View primaryActionView,
-            View secondaryActionView, ImageView secondaryActionButtonView,
-            PhoneCallDetailsViews phoneCallDetailsViews,
-            TextView listHeaderTextView) {
+            PhoneCallDetailsViews phoneCallDetailsViews, View callLogEntryView,
+            TextView dayGroupHeader) {
         this.quickContactView = quickContactView;
         this.primaryActionView = primaryActionView;
-        this.secondaryActionView = secondaryActionView;
-        this.secondaryActionButtonView = secondaryActionButtonView;
         this.phoneCallDetailsViews = phoneCallDetailsViews;
-        this.listHeaderTextView = listHeaderTextView;
+        this.callLogEntryView = callLogEntryView;
+        this.dayGroupHeader = dayGroupHeader;
     }
 
     public static CallLogListItemViews fromView(View view) {
         return new CallLogListItemViews(
                 (QuickContactBadge) view.findViewById(R.id.quick_contact_photo),
                 view.findViewById(R.id.primary_action_view),
-                view.findViewById(R.id.secondary_action_view),
-                (ImageView) view.findViewById(R.id.secondary_action_icon),
                 PhoneCallDetailsViews.fromView(view),
-                (TextView) view.findViewById(R.id.call_log_header));
+                view.findViewById(R.id.call_log_row),
+                (TextView) view.findViewById(R.id.call_log_day_group_label));
     }
 
     @NeededForTesting
     public static CallLogListItemViews createForTest(Context context) {
-        return new CallLogListItemViews(
+        CallLogListItemViews views = new CallLogListItemViews(
                 new QuickContactBadge(context),
                 new View(context),
-                new View(context),
-                new ImageView(context),
                 PhoneCallDetailsViews.createForTest(context),
+                new View(context),
                 new TextView(context));
+        views.callBackButtonView = new TextView(context);
+        views.voicemailButtonView = new TextView(context);
+        views.detailsButtonView = new TextView(context);
+        views.reportButtonView = new TextView(context);
+        views.actionsView = new View(context);
+        return views;
     }
 }

@@ -16,54 +16,52 @@
   -->
 <resources>
     <style name="DialtactsTheme"
-           parent="android:Theme.Holo.Light">
+           parent="android:Theme.Material.Light">
         <item name="android:textColorPrimary">@color/dialtacts_primary_text_color</item>
         <item name="android:textColorSecondary">@color/dialtacts_secondary_text_color</item>
-        <item name="android:windowActionBarOverlay">false</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
         <item name="android:actionBarStyle">@style/DialtactsActionBarStyle</item>
-        <!-- Style for the tabs (for the tabs) -->
-        <item name="android:actionBarTabStyle">@style/DialtactsActionBarTabStyle</item>
-        <!-- Style for the tab bar (for the divider between tabs) -->
-        <item name="android:actionBarTabBarStyle">@style/DialtactsActionBarTabBarStyle</item>
-        <!-- Style for the tab bar text (for text on tabs) -->
-        <item name="android:actionBarTabTextStyle">@style/DialtactsActionBarTabTextStyle</item>
         <!-- Style for the overflow button in the actionbar. -->
         <item name="android:actionOverflowButtonStyle">@style/DialtactsActionBarOverflow</item>
-        <!-- The "Up" icon in the action bar. -->
+        <!--  Drawable for the back button -->
         <item name="android:homeAsUpIndicator">@drawable/ic_back_arrow</item>
         <item name="android:windowContentOverlay">@null</item>
-        <!--  Searchbox Style -->
-        <item name="android:editTextStyle">@style/DialtactsSearchboxStyle</item>
         <item name="android:listViewStyle">@style/ListViewStyle</item>
+        <item name="android:overlapAnchor">true</item>
+        <item name="android:alertDialogTheme">@style/AlertDialogTheme</item>
         <item name="activated_background">@drawable/list_item_activated_background</item>
         <item name="section_header_background">@drawable/list_title_holo</item>
         <item name="list_section_header_height">32dip</item>
-        <item name="list_item_divider">?android:attr/listDivider</item>
-        <item name="list_item_padding_top">8dip</item>
-        <item name="list_item_padding_right">0dip</item>
-        <item name="list_item_padding_bottom">8dip</item>
-        <item name="list_item_padding_left">0dip</item>
-        <item name="list_item_gap_between_image_and_text">8dip</item>
+        <item name="list_item_padding_top">12dp</item>
+        <item name="list_item_padding_right">32dp</item>
+        <item name="list_item_padding_bottom">12dp</item>
+        <item name="list_item_padding_left">16dp</item>
+        <item name="list_item_gap_between_image_and_text">
+            @dimen/contact_browser_list_item_gap_between_image_and_text
+        </item>
         <item name="list_item_gap_between_label_and_data">5dip</item>
         <item name="list_item_presence_icon_margin">4dip</item>
         <item name="list_item_presence_icon_size">16dip</item>
         <item name="list_item_photo_size">@dimen/contact_browser_list_item_photo_size</item>
         <item name="list_item_profile_photo_size">70dip</item>
         <item name="list_item_prefix_highlight_color">@color/people_app_theme_color</item>
+        <item name="list_item_background_color">@color/background_dialer_light</item>
         <item name="list_item_header_text_indent">8dip</item>
-        <item name="list_item_header_text_color">@color/people_app_theme_color</item>
+        <item name="list_item_header_text_color">@color/dialtacts_secondary_text_color</item>
         <item name="list_item_header_text_size">14sp</item>
         <item name="list_item_header_height">30dip</item>
-        <item name="list_item_header_underline_height">1dip</item>
-        <item name="list_item_header_underline_color">@color/favorite_contacts_separator_color</item>
         <item name="list_item_data_width_weight">5</item>
         <item name="list_item_label_width_weight">3</item>
-        <item name="contact_browser_list_padding_left">8dip</item>
-        <item name="contact_browser_list_padding_right">0dip</item>
-        <item name="contact_browser_background">@android:color/transparent</item>
+        <item name="contact_browser_list_padding_left">0dp</item>
+        <item name="contact_browser_list_padding_right">0dp</item>
+        <item name="contact_browser_background">@color/background_dialer_results</item>
+        <item name="list_item_name_text_color">@color/contact_list_name_text_color</item>
+        <item name="list_item_name_text_size">16sp</item>
         <item name="list_item_text_indent">@dimen/contact_browser_list_item_text_indent</item>
+        <item name="list_item_text_offset_top">-2dp</item>
         <!-- CallLog -->
-        <item name="call_log_primary_text_color">#000000</item>
+        <item name="call_log_primary_text_color">@color/dialtacts_primary_text_color</item>
         <item name="call_log_primary_background_color">#000000</item>
         <item name="call_log_secondary_text_color">@color/dialtacts_secondary_text_color</item>
         <item name="call_log_secondary_background_color">#333333</item>
@@ -75,50 +73,43 @@
         <item name="call_log_voicemail_status_action_text_color">#33b5e5</item>
             <!-- Favorites -->
         <item name="favorites_padding_bottom">?android:attr/actionBarSize</item>
-    </style>
-
-    <!-- An extension of the main DialtactsTheme used when the the launcher activity is shown.
-         Ensures that there is no actionbar showing during the load of the dialer app. -->
-    <style name="DialtactsThemeHiddenActionBar" parent="DialtactsTheme">
-        <item name="android:actionBarStyle">@style/DialtactsHiddenActionBarStyle</item>
-    </style>
-
-    <!-- A "hidden" action bar style.  Used when loading the launcher activity so that the
-         default actionbar is effectively hidden. -->
-    <style name="DialtactsHiddenActionBarStyle" parent="DialtactsActionBarStyle">
-        <item name="android:background">@color/background_dialer_light</item>
-        <item name="android:titleTextStyle">@style/DialtactsHiddenActionBarTextStyle</item>
-    </style>
-
-    <style name="DialtactsHiddenActionBarTextStyle" parent="@android:style/TextAppearance">
-        <item name="android:textColor">@color/background_dialer_light</item>
+        <item name="android:colorPrimary">@color/dialer_theme_color</item>
+        <item name="android:colorPrimaryDark">@color/dialer_theme_color_dark</item>
+        <item name="dialpad_key_button_touch_tint">@color/dialer_dialpad_touch_tint</item>
+        <item name="android:colorControlActivated">@color/dialer_theme_color</item>
     </style>
 
     <!-- Action bar overflow menu icon. -->
     <style name="DialtactsActionBarOverflow"
-           parent="@android:style/Widget.Holo.ActionButton.Overflow">
-        <item name="android:src">@drawable/ic_menu_overflow_lt</item>
+           parent="@android:style/Widget.Material.Light.ActionButton.Overflow">
+        <item name="android:src">@drawable/ic_overflow_menu</item>
+    </style>
+
+    <!-- Action bar overflow menu icon.  White with no shadow. -->
+    <style name="DialtactsActionBarOverflowWhite"
+           parent="@android:style/Widget.Material.Light.ActionButton.Overflow">
+        <item name="android:src">@drawable/overflow_menu</item>
     </style>
 
     <style name="DialpadTheme" parent="DialtactsTheme">
         <item name="android:textColorPrimary">#FFFFFF</item>
     </style>
 
-    <style name="DialtactsThemeWithActionBarOverlay" parent="DialtactsTheme">
-        <item name="android:windowActionBarOverlay">true</item>
+    <style name="DialtactsThemeWithoutActionBarOverlay" parent="DialtactsTheme">
+        <item name="android:windowActionBarOverlay">false</item>
+        <item name="android:actionOverflowButtonStyle">@style/DialtactsActionBarOverflowWhite</item>
     </style>
 
-    <style name="CallDetailActivityTheme" parent="android:Theme.Holo.Light">
-        <item name="android:windowBackground">@color/background_dialer_list_items</item>
-        <item name="android:gravity">top</item>
-        <item name="android:listViewStyle">@style/ListViewStyle</item>
-        <item name="android:actionBarStyle">@style/DialtactsActionBarStyle</item>
-        <item name="android:actionOverflowButtonStyle">@style/DialtactsActionBarOverflow</item>
-        <item name="android:homeAsUpIndicator">@drawable/ic_back_arrow</item>
+    <!-- Hide the actionbar title during the activity preview -->
+    <style name="DialtactsActivityTheme" parent="DialtactsTheme">
+        <item name="android:actionBarStyle">@style/DialtactsActionBarWithoutTitleStyle</item>
+        <item name="android:fastScrollThumbDrawable">@drawable/fastscroll_thumb</item>
+    </style>
+
+    <style name="CallDetailActivityTheme" parent="DialtactsThemeWithoutActionBarOverlay">
+        <item name="android:windowBackground">@color/background_dialer_results</item>
         <!-- CallLog -->
-        <item name="call_log_primary_text_color">#333333</item>
         <item name="call_log_primary_background_color">#FFFFFF</item>
-        <item name="call_log_secondary_text_color">#333333</item>
         <item name="call_log_secondary_background_color">#FFFFFF</item>
         <item name="call_log_header_color">#FFFFFF</item>
         <!-- VoicemailStatus -->
@@ -126,103 +117,64 @@
         <item name="call_log_voicemail_status_background_color">#262626</item>
         <item name="call_log_voicemail_status_text_color">#888888</item>
         <item name="call_log_voicemail_status_action_text_color">#33b5e5</item>
+        <item name="android:actionOverflowButtonStyle">@style/DialtactsActionBarOverflowWhite</item>
     </style>
 
-    <style name="DialpadKeyNumberStyle">
-        <item name="android:textColor">@color/actionbar_background_color</item>
-        <item name="android:textSize">@dimen/dialpad_key_numbers_size</item>
-        <item name="android:fontFamily">sans-serif-light</item>
-        <item name="android:layout_width">@dimen/dialpad_key_numbers_width</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:gravity">center</item>
-    </style>
-
-    <style name="DialpadKeyStarPoundStyle">
-        <item name="android:textColor">@color/dialpad_secondary_text_color</item>
-        <item name="android:textSize">@dimen/dialpad_key_star_pound_size</item>
-        <item name="android:fontFamily">sans-serif-light</item>
-        <item name="android:layout_width">@dimen/dialpad_key_numbers_width</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:gravity">center</item>
-    </style>
-
-    <style name="DialpadKeyLettersStyle">
-        <item name="android:textColor">@color/dialpad_secondary_text_color</item>
-        <item name="android:textSize">@dimen/dialpad_key_letters_size</item>
-        <item name="android:fontFamily">sans-serif-light</item>
-        <item name="android:layout_width">@dimen/dialpad_key_letters_width</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:paddingLeft">@dimen/dialpad_number_to_letters_padding</item>
-    </style>
-
-    <style name="DialpadKeyButtonStyle">
-        <item name="android:soundEffectsEnabled">false</item>
-        <item name="android:clickable">true</item>
-        <item name="android:layout_width">fill_parent</item>
-        <item name="android:layout_height">@dimen/dialpad_key_height</item>
-        <item name="android:background">@drawable/dialpad_key_colors</item>
-        <item name="android:focusable">true</item>
-    </style>
-
-    <style name="DialpadKeyInternalLayoutStyle">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_gravity">center</item>
-    </style>
-
-    <style name="DialtactsActionBarStyle" parent="android:Widget.Holo.ActionBar">
-        <item name="android:background">@drawable/call_history_actionbar_background</item>
-        <item name="android:backgroundStacked">#ffffff</item>
+    <style name="DialtactsActionBarStyle" parent="android:Widget.Material.ActionBar">
+        <item name="android:background">@color/actionbar_background_color</item>
         <item name="android:titleTextStyle">@style/DialtactsActionBarTitleText</item>
+        <item name="android:height">@dimen/action_bar_height</item>
+        <item name="android:elevation">@dimen/action_bar_elevation</item>
         <!-- Empty icon -->
         <item name="android:icon">@android:color/transparent</item>
+        <!-- Shift the title text to the right -->
+        <item name="android:contentInsetStart">@dimen/actionbar_contentInsetStart</item>
+    </style>
+
+    <style name="DialtactsActionBarWithoutTitleStyle" parent="DialtactsActionBarStyle">
+        <item name="android:displayOptions"></item>
+        <item name="android:height">@dimen/action_bar_height_large</item>
+        <!-- Override ActionBar title offset to keep search box aligned left -->
+        <item name="android:contentInsetStart">0px</item>
     </style>
 
     <!-- Text in the action bar at the top of the screen -->
     <style name="DialtactsActionBarTitleText"
-           parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+           parent="@android:style/TextAppearance.Material.Widget.ActionBar.Title">
         <item name="android:textColor">@color/actionbar_text_color</item>
-    </style>
-
-    <!-- Styling for the tab bar; handles styling of the divider line. -->
-    <style name="DialtactsActionBarTabBarStyle"
-           parent="@android:style/Widget.Holo.ActionBar.TabBar">
-        <item name="android:divider">@drawable/divider</item>
-        <item name="android:showDividers">middle</item>
-        <item name="android:dividerPadding">@dimen/tab_divider_padding</item>
-        <item name="android:background">@drawable/action_bar_tab</item>
-    </style>
-
-    <!-- Styling for tabs. -->
-    <style name="DialtactsActionBarTabStyle" parent="@android:style/Widget.Holo.ActionBar.TabView">
-        <item name="android:background">@drawable/action_bar_tab</item>
-        <item name="android:showDividers">none</item>
     </style>
 
     <!-- Text style for tabs. -->
     <style name="DialtactsActionBarTabTextStyle"
-           parent="android:style/Widget.Holo.Light.ActionBar.TabText">
+           parent="android:style/Widget.Material.Light.ActionBar.TabText">
         <item name="android:textColor">@color/tab_text_color</item>
         <item name="android:textSize">@dimen/tab_text_size</item>
-        <item name="android:fontFamily">@string/tab_font_family</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">"sans-serif-medium"</item>
     </style>
 
-    <style name="ListViewStyle" parent="@android:style/Widget.Holo.Light.ListView">
+    <style name="ListViewStyle" parent="@android:style/Widget.Material.Light.ListView">
         <item name="android:overScrollMode">always</item>
-    </style>
-
-    <style name="FragmentActionBarPadding">
-        <item name="android:paddingBottom">?android:attr/actionBarSize</item>
-    </style>
-
-    <style name="DialtactsSearchboxStyle" parent="@android:style/Widget.EditText">
-        <item name="android:background">@null</item>
-        <item name="android:textColorHint">@color/searchbox_text_color</item>
     </style>
 
     <style name="DismissButtonStyle">
         <item name="android:paddingLeft">@dimen/dismiss_button_padding_start</item>
         <item name="android:paddingRight">@dimen/dismiss_button_padding_end</item>
+    </style>
+
+    <!-- Style applied to the "Settings" screen.  Keep in sync with SettingsLight in Telephony. -->
+    <style name="SettingsStyle" parent="DialtactsThemeWithoutActionBarOverlay">
+        <!-- Setting text. -->
+        <item name="android:textColor">@color/setting_primary_color</item>
+        <!-- Setting description. -->
+        <item name="android:textColorSecondary">@color/setting_secondary_color</item>
+        <item name="android:windowBackground">@color/setting_background_color</item>
+        <item name="android:colorAccent">@color/dialtacts_theme_color</item>
+        <item name="android:textColorLink">@color/dialtacts_theme_color</item>
+    </style>
+
+    <!-- Inherit from Theme.Material.Light.Dialog instead of Theme.Material.Light.Dialog.Alert
+    since the Alert dialog is private. They are identical anyway. -->
+    <style name="AlertDialogTheme" parent="@android:style/Theme.Material.Light.Dialog">
+        <item name="android:colorAccent">@color/dialtacts_theme_color</item>
     </style>
 </resources>

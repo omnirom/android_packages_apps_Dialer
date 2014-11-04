@@ -16,46 +16,66 @@
 package com.android.dialer.calllog;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.ActionBar.Tab;
-import android.app.ActionBar.TabListener;
-import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.provider.CallLog;
 import android.provider.CallLog.Calls;
 import android.support.v13.app.FragmentPagerAdapter;
-import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.TypefaceSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 
+import com.android.contacts.common.interactions.TouchPointManager;
+import com.android.contacts.common.list.ViewPagerTabs;
 import com.android.dialer.DialtactsActivity;
 import com.android.dialer.R;
 import com.android.dialer.calllog.CallLogFragment;
 import com.android.dialer.callstats.CallStatsFragment;
+import com.android.dialer.voicemail.VoicemailStatusHelper;
+import com.android.dialer.voicemail.VoicemailStatusHelperImpl;
 import com.android.dialer.widget.DoubleDatePickerDialog;
+import com.android.dialerbind.analytics.AnalyticsActivity;
 
-public class CallLogActivity extends Activity implements
-        DoubleDatePickerDialog.OnDateSetListener {
-
+public class CallLogActivity extends AnalyticsActivity implements CallLogQueryHandler.Listener {
+    private Handler mHandler;
     private ViewPager mViewPager;
+    private ViewPagerTabs mViewPagerTabs;
     private ViewPagerAdapter mViewPagerAdapter;
     private CallLogFragment mAllCallsFragment;
     private CallLogFragment mMissedCallsFragment;
+    private CallLogFragment mVoicemailFragment;
     private CallStatsFragment mStatsFragment;
+    private VoicemailStatusHelper mVoicemailStatusHelper;
+
+    private static final int WAIT_FOR_VOICEMAIL_PROVIDER_TIMEOUT_MS = 300;
+    private boolean mSwitchToVoicemailTab;
+
+    private String[] mTabTitles;
 
     private static final int TAB_INDEX_ALL = 0;
     private static final int TAB_INDEX_MISSED = 1;
     private static final int TAB_INDEX_STATS = 2;
+    private static final int TAB_INDEX_VOICEMAIL = 3;
 
-    private static final int TAB_INDEX_COUNT = 3;
+    private static final int TAB_INDEX_COUNT_DEFAULT = 3;
+    private static final int TAB_INDEX_COUNT_WITH_VOICEMAIL = 4;
+
+    private boolean mHasActiveVoicemailProvider;
+
+    private final Runnable mWaitForVoicemailTimeoutRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mViewPagerTabs.setViewPager(mViewPager);
+            mViewPager.setCurrentItem(TAB_INDEX_ALL);
+            mSwitchToVoicemailTab = false;
+        }
+    };
 
     public class ViewPagerAdapter extends FragmentPagerAdapter {
         public ViewPagerAdapter(FragmentManager fm) {
@@ -74,32 +94,24 @@ public class CallLogActivity extends Activity implements
                 case TAB_INDEX_STATS:
                     mStatsFragment = new CallStatsFragment();
                     return mStatsFragment;
+                case TAB_INDEX_VOICEMAIL:
+                    mVoicemailFragment = new CallLogFragment(Calls.VOICEMAIL_TYPE);
+                    return mVoicemailFragment;
             }
             throw new IllegalStateException("No fragment at position " + position);
         }
 
         @Override
+        public CharSequence getPageTitle(int position) {
+            return mTabTitles[position];
+        }
+
+        @Override
         public int getCount() {
-            return TAB_INDEX_COUNT;
+            return mHasActiveVoicemailProvider ? TAB_INDEX_COUNT_WITH_VOICEMAIL :
+                    TAB_INDEX_COUNT_DEFAULT;
         }
     }
-
-    private final TabListener mTabListener = new TabListener() {
-        @Override
-        public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-        }
-
-        @Override
-        public void onTabSelected(Tab tab, FragmentTransaction ft) {
-            if (mViewPager != null && mViewPager.getCurrentItem() != tab.getPosition()) {
-                mViewPager.setCurrentItem(tab.getPosition(), true);
-            }
-        }
-
-        @Override
-        public void onTabReselected(Tab tab, FragmentTransaction ft) {
-        }
-    };
 
     private final OnPageChangeListener mOnPageChangeListener = new OnPageChangeListener() {
 
@@ -119,30 +131,43 @@ public class CallLogActivity extends Activity implements
     };
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            TouchPointManager.getInstance().setPoint((int) ev.getRawX(), (int) ev.getRawY());
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mHandler = new Handler();
+
         setContentView(R.layout.call_log_activity);
+        getWindow().setBackgroundDrawable(null);
 
         final ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setDisplayShowHomeEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setElevation(0);
 
-        final Tab allTab = actionBar.newTab();
-        final String allTitle = getString(R.string.call_log_all_title);
-        allTab.setContentDescription(allTitle);
-        allTab.setText(allTitle);
-        allTab.setTabListener(mTabListener);
-        actionBar.addTab(allTab);
+        int startingTab = TAB_INDEX_ALL;
+        final Intent intent = getIntent();
+        if (intent != null) {
+            final int callType = intent.getIntExtra(CallLog.Calls.EXTRA_CALL_TYPE_FILTER, -1);
+            if (callType == CallLog.Calls.MISSED_TYPE) {
+                startingTab = TAB_INDEX_MISSED;
+            } else if (callType == CallLog.Calls.VOICEMAIL_TYPE) {
+                startingTab = TAB_INDEX_VOICEMAIL;
+            }
+        }
 
-        final Tab missedTab = actionBar.newTab();
-        final String missedTitle = getString(R.string.call_log_missed_title);
-        missedTab.setContentDescription(missedTitle);
-        missedTab.setText(missedTitle);
-        missedTab.setTabListener(mTabListener);
-        actionBar.addTab(missedTab);
+        mTabTitles = new String[TAB_INDEX_COUNT_WITH_VOICEMAIL];
+        mTabTitles[0] = getString(R.string.call_log_all_title);
+        mTabTitles[1] = getString(R.string.call_log_missed_title);
+        mTabTitles[2] = getString(R.string.call_log_voicemail_title);
 
         final Tab statsTab = actionBar.newTab();
         final String statsTitle = getString(R.string.call_log_stats_title);
@@ -152,10 +177,36 @@ public class CallLogActivity extends Activity implements
         actionBar.addTab(statsTab);
 
         mViewPager = (ViewPager) findViewById(R.id.call_log_pager);
+
         mViewPagerAdapter = new ViewPagerAdapter(getFragmentManager());
         mViewPager.setAdapter(mViewPagerAdapter);
         mViewPager.setOnPageChangeListener(mOnPageChangeListener);
         mViewPager.setOffscreenPageLimit(2);
+
+        mViewPagerTabs = (ViewPagerTabs) findViewById(R.id.viewpager_header);
+        mViewPager.setOnPageChangeListener(mViewPagerTabs);
+
+        if (startingTab == TAB_INDEX_VOICEMAIL) {
+            // The addition of the voicemail tab is an asynchronous process, so wait till the tab
+            // is added, before attempting to switch to it. If the querying of CP2 for voicemail
+            // providers takes too long, give up and show the first tab instead.
+            mSwitchToVoicemailTab = true;
+            mHandler.postDelayed(mWaitForVoicemailTimeoutRunnable,
+                    WAIT_FOR_VOICEMAIL_PROVIDER_TIMEOUT_MS);
+        } else {
+            mViewPagerTabs.setViewPager(mViewPager);
+            mViewPager.setCurrentItem(startingTab);
+        }
+
+        mVoicemailStatusHelper = new VoicemailStatusHelperImpl();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        CallLogQueryHandler callLogQueryHandler =
+                new CallLogQueryHandler(this.getContentResolver(), this);
+        callLogQueryHandler.fetchVoicemailStatus();
     }
 
     @Override
@@ -195,5 +246,33 @@ public class CallLogActivity extends Activity implements
     @Override
     public void onDateSet(long from, long to) {
         mStatsFragment.onDateSet(from, to);
+    }
+
+    public void onVoicemailStatusFetched(Cursor statusCursor) {
+        if (this.isFinishing()) {
+            return;
+        }
+
+        mHandler.removeCallbacks(mWaitForVoicemailTimeoutRunnable);
+        // Update mHasActiveVoicemailProvider, which controls the number of tabs displayed.
+        int activeSources = mVoicemailStatusHelper.getNumberActivityVoicemailSources(statusCursor);
+        if (activeSources > 0 != mHasActiveVoicemailProvider) {
+            mHasActiveVoicemailProvider = activeSources > 0;
+            mViewPagerAdapter.notifyDataSetChanged();
+            mViewPagerTabs.setViewPager(mViewPager);
+            if (mSwitchToVoicemailTab) {
+                mViewPager.setCurrentItem(TAB_INDEX_VOICEMAIL, false);
+            }
+        } else if (mSwitchToVoicemailTab) {
+            // The voicemail tab was requested, but it does not exist because there are no
+            // voicemail sources. Just fallback to the first item instead.
+            mViewPagerTabs.setViewPager(mViewPager);
+        }
+    }
+
+    @Override
+    public boolean onCallsFetched(Cursor statusCursor) {
+        // Return false; did not take ownership of cursor
+        return false;
     }
 }

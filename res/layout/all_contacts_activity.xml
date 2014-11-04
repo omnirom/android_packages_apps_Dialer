@@ -17,7 +17,6 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="?android:attr/actionBarSize"
     android:id="@+id/all_contacts_frame">
     <fragment android:name="com.android.dialer.list.AllContactsFragment"
               android:id="@+id/all_contacts_fragment"

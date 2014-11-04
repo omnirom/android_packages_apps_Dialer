@@ -15,10 +15,6 @@
   ~ limitations under the License
 -->
 <resources>
-
-    <!--  Search View -->
-    <dimen name="search_text_size">14sp</dimen>
-
     <!--
           Drag to remove view (in dp because it is used in conjunction with a statically
           sized icon
@@ -29,58 +25,62 @@
     <dimen name="call_log_call_action_size">32dip</dimen>
     <dimen name="call_log_call_action_width">54dp</dimen>
     <dimen name="call_log_icon_margin">4dip</dimen>
-    <dimen name="call_log_inner_margin">8dip</dimen>
-    <dimen name="call_log_outer_margin">8dip</dimen>
+    <dimen name="call_log_inner_margin">13dip</dimen>
+    <dimen name="call_log_outer_margin">8dp</dimen>
+    <dimen name="call_log_start_margin">16dp</dimen>
     <dimen name="call_log_indent_margin">24dip</dimen>
+    <dimen name="call_log_name_margin_bottom">2dp</dimen>
     <dimen name="call_log_list_item_height">56dip</dimen>
-    <dimen name="call_log_list_contact_photo_size">64dip</dimen>
-    <dimen name="call_detail_contact_name_margin">24dip</dimen>
+
+    <!-- Size of contact photos in the call log and call details. -->
+    <dimen name="contact_photo_size">40dp</dimen>
     <dimen name="call_detail_button_spacing">2dip</dimen>
-    <!-- Defines the vertical margin for the vertical separator between
-         the main area of a call log entry and the secondary action button. -->
-    <dimen name="call_log_list_item_vertical_divider_margin">17dp</dimen>
+    <dimen name="call_detail_horizontal_margin">16dp</dimen>
+    <dimen name="call_detail_top_margin">36dp</dimen>
+    <dimen name="call_detail_bottom_margin">32dp</dimen>
+    <dimen name="call_detail_header_top_margin">20dp</dimen>
+    <dimen name="call_detail_header_bottom_margin">9dp</dimen>
+    <dimen name="call_detail_translation_z">0.5dp</dimen>
+    <dimen name="transcription_top_margin">18dp</dimen>
+    <dimen name="transcription_bottom_margin">18dp</dimen>
 
-    <!-- Defines the width of the vertical separator between
-         the main area of a call log entry and the secondary action button. -->
-    <dimen name="call_log_list_item_vertical_divider_width">1dp</dimen>
+    <!-- Size of call provider icon width and height -->
+    <dimen name="call_provider_small_icon_size">12dp</dimen>
 
-    <!-- Text dimensions for dialpad keys -->
-    <dimen name="dialpad_key_numbers_size">40sp</dimen>
-    <dimen name="dialpad_key_letters_size">13sp</dimen>
-    <dimen name="dialpad_key_star_pound_size">26sp</dimen>
-    <dimen name="dialpad_key_numbers_width">30dp</dimen>
-    <dimen name="dialpad_key_letters_width">50dp</dimen>
-    <dimen name="dialpad_key_height">56dp</dimen>
-    <dimen name="dialpad_key_plus_size">18sp</dimen>
-    <dimen name="dialpad_number_to_letters_padding">11dp</dimen>
-    <dimen name="dialpad_horizontal_padding">5dp</dimen>
-    <dimen name="dialpad_digits_text_size">36sp</dimen>
-    <dimen name="dialpad_digits_height">47dp</dimen>
-    <dimen name="dialpad_digits_padding">16dp</dimen>
-    <dimen name="dialpad_digits_margin_bottom">0px</dimen>
-    <dimen name="dialpad_center_margin">3dp</dimen>
-    <dimen name="dialpad_button_margin">2dp</dimen>
     <!-- Match call_button_height to Phone's dimens/in_call_end_button_height -->
     <dimen name="call_button_height">74dp</dimen>
 
-    <dimen name="fake_action_bar_height">60dp</dimen>
-    <!-- Min with of fake menu buttons, which should be same as ActionBar's one -->
-    <dimen name="fake_menu_button_min_width">56dp</dimen>
-
-    <!--  Favorites tile and recent call log padding -->
-    <dimen name="contact_tile_divider_width">12dp</dimen>
-    <!-- Favorites tile and recent call log padding -->
-    <dimen name="contact_tile_divider_padding">3dp</dimen>
+    <!-- Dimensions for speed dial tiles -->
+    <dimen name="contact_tile_divider_width">1dp</dimen>
     <dimen name="contact_tile_info_button_height_and_width">36dp</dimen>
-    <item name="contact_tile_height_to_width_ratio" type="dimen">67%</item>
-    <dimen name="contact_tile_text_side_padding">10dp</dimen>
-    <dimen name="contact_tile_text_bottom_padding">8dp</dimen>
-    <dimen name="favorites_row_top_padding">6dp</dimen>
-    <dimen name="favorites_row_bottom_padding">6dp</dimen>
-    <dimen name="favorites_row_start_padding">8dp</dimen>
-    <dimen name="favorites_row_end_padding">8dp</dimen>
+    <item name="contact_tile_height_to_width_ratio" type="dimen">76%</item>
+    <dimen name="contact_tile_text_side_padding">12dp</dimen>
+    <dimen name="contact_tile_text_bottom_padding">9dp</dimen>
+    <dimen name="favorites_row_top_padding">2dp</dimen>
+    <dimen name="favorites_row_bottom_padding">0dp</dimen>
+    <dimen name="favorites_row_start_padding">1dp</dimen>
+
+    <!-- Padding from the last contact tile will provide the end padding. -->
+    <dimen name="favorites_row_end_padding">0dp</dimen>
     <dimen name="favorites_row_undo_text_side_padding">32dp</dimen>
-    <dimen name="recent_call_log_item_padding">8dp</dimen>
+
+    <!-- Dimensions for most recent call shortcut cards -->
+    <dimen name="recent_call_log_item_translation_z">3dp</dimen>
+    <dimen name="recent_call_log_item_margin_horizontal">8dp</dimen>
+    <dimen name="recent_call_log_item_margin_top">4dp</dimen>
+    <dimen name="recent_call_log_item_margin_bottom">6dp</dimen>
+
+    <!-- The maximum amount to clip on the left and right of the recent call shortcut card -->
+    <dimen name="recent_call_log_item_horizontal_clip_limit">20dp</dimen>
+    <dimen name="recent_call_log_item_padding_start">8dp</dimen>
+    <dimen name="recent_call_log_item_padding_top">12dp</dimen>
+    <dimen name="recent_call_log_item_padding_bottom">11dp</dimen>
+
+    <dimen name="call_log_item_extra_padding_vertical">4dp</dimen>
+
+
+    <!-- Size of the star icon on the favorites tile. -->
+    <dimen name="favorites_star_icon_size">12dp</dimen>
 
     <!-- Padding for the tooltip -->
     <dimen name="dismiss_button_padding_start">20dip</dimen>
@@ -104,33 +104,59 @@
     <!-- Height of the all contacts Button in the favorites menu. -->
     <dimen name="favorites_menu_all_contacts_height">24dp</dimen>
 
+    <!-- Height of the actionBar - this is 8dps bigger than the platform standard to give more
+    room to the search box-->
+    <dimen name="action_bar_height">56dp</dimen>
+    <dimen name="action_bar_height_large">64dp</dimen>
+    <dimen name="action_bar_elevation">2dp</dimen>
+    <dimen name="tab_height">43dp</dimen>
+    <!-- actionbar height + tab height -->
+    <dimen name="actionbar_and_tab_height">107dp</dimen>
+    <dimen name="actionbar_contentInsetStart">72dp</dimen>
+
     <!-- Margin to the left and right of the search box. -->
-    <dimen name="search_margin_horizontal">7dp</dimen>
+    <dimen name="search_margin_horizontal">8dp</dimen>
     <!-- Margin above the search box. -->
-    <dimen name="search_top_margin">10dp</dimen>
+    <dimen name="search_top_margin">8dp</dimen>
     <!-- Margin below the search box. -->
-    <dimen name="search_bottom_margin">4dp</dimen>
-    <!-- Height of the search box. -->
-    <dimen name="search_box_height">41dp</dimen>
-    <!-- Search box text size -->
-    <dimen name="search_text_size">13.24sp</dimen>
+    <dimen name="search_bottom_margin">8dp</dimen>
+    <dimen name="search_collapsed_text_size">14sp</dimen>
     <!-- Search box interior padding - left -->
-    <dimen name="search_box_left_padding">16dp</dimen>
+    <dimen name="search_box_left_padding">8dp</dimen>
     <!-- Search box interior padding - right -->
     <dimen name="search_box_right_padding">8dp</dimen>
     <!-- Padding around the icon in the search box. -->
-    <dimen name="search_box_icon_padding">3dp</dimen>
-    <!-- Left margin of the text field in the search box. -->
-    <dimen name="search_box_text_left_margin">8dp</dimen>
-    <!-- Size of the icon (voice search, close search) in the search box. -->
-    <dimen name="search_box_icon_size">37dp</dimen>
+    <dimen name="search_box_icon_margin">4dp</dimen>
+    <dimen name="search_box_search_icon_padding">2dp</dimen>
+    <dimen name="search_box_collapsed_text_margin_left">22dp</dimen>
+    <dimen name="search_list_padding_top">16dp</dimen>
+    <dimen name="search_box_elevation">3dp</dimen>
 
-    <!-- Height of the underline of a tab. -->
-    <dimen name="tab_underline_height">2dp</dimen>
-    <!-- Height of the selection indicator of a tab. -->
-    <dimen name="tab_selection_height">7.7dp</dimen>
-    <!-- Padding above and below the divider line of a tab. -->
-    <dimen name="tab_divider_padding">12dp</dimen>
-    <!-- Size of text in tabs. -->
-    <dimen name="tab_text_size">12sp</dimen>
+    <!-- Padding to the left and right of call log action buttons. -->
+    <dimen name="call_log_action_horizontal_padding">8dp</dimen>
+    <!-- Left-padding for the call log action buttons - ensures the buttons align with the text
+         to the right of the contact badge.  Adjust when any of the following change:
+         call_log_action_horizontal_padding
+         call_log_list_contact_photo_size  -->
+    <dimen name="call_log_actions_left_padding">64dp</dimen>
+    <dimen name="call_log_primary_text_size">16sp</dimen>
+    <dimen name="call_log_secondary_text_size">14sp</dimen>
+    <dimen name="call_log_list_item_actions_text_size">12sp</dimen>
+    <!-- Height of the call log actions section for each call log entry -->
+    <dimen name="call_log_action_height">44dp</dimen>
+    <!-- Z Translation of expanded call log items. -->
+    <dimen name="call_log_expanded_translation_z">2dp</dimen>
+    <dimen name="call_log_day_group_padding_top">15dp</dimen>
+    <dimen name="call_log_day_group_padding_bottom">9dp</dimen>
+
+    <!-- Length of dialpad's shadows in dialer. -->
+    <dimen name="shadow_length">10dp</dimen>
+
+    <dimen name="empty_list_message_text_size">16sp</dimen>
+
+    <!-- Dimensions for individual preference cards -->
+    <dimen name="preference_padding_top">16dp</dimen>
+    <dimen name="preference_padding_bottom">16dp</dimen>
+    <dimen name="preference_side_margin">16dp</dimen>
+    <dimen name="preference_summary_line_spacing_extra">4dp</dimen>
 </resources>

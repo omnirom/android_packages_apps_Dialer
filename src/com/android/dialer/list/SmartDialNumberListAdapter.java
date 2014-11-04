@@ -22,8 +22,10 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Callable;
 import android.telephony.PhoneNumberUtils;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.list.ContactListItemView;
 import com.android.contacts.common.list.PhoneNumberListAdapter;
 import com.android.contacts.common.list.PhoneNumberListAdapter.PhoneQuery;
@@ -46,6 +48,8 @@ public class SmartDialNumberListAdapter extends DialerPhoneNumberListAdapter {
 
     public SmartDialNumberListAdapter(Context context) {
         super(context);
+        mNameMatcher = new SmartDialNameMatcher("", SmartDialPrefix.getMap());
+
         if (DEBUG) {
             Log.v(TAG, "Constructing List Adapter");
         }
@@ -60,12 +64,11 @@ public class SmartDialNumberListAdapter extends DialerPhoneNumberListAdapter {
         }
 
         if (getQueryString() == null) {
-            mNameMatcher = new SmartDialNameMatcher("", SmartDialPrefix.getMap());
             loader.configureQuery("");
+            mNameMatcher.setQuery("");
         } else {
             loader.configureQuery(getQueryString());
-            mNameMatcher = new SmartDialNameMatcher(PhoneNumberUtils.normalizeNumber(
-                    getQueryString()), SmartDialPrefix.getMap());
+            mNameMatcher.setQuery(PhoneNumberUtils.normalizeNumber(getQueryString()));
         }
     }
 
@@ -110,5 +113,18 @@ public class SmartDialNumberListAdapter extends DialerPhoneNumberListAdapter {
             Log.w(TAG, "Cursor was null in getDataUri() call. Returning null instead.");
             return null;
         }
+    }
+
+    @Override
+    public void setQueryString(String queryString) {
+        final boolean showNumberShortcuts = !TextUtils.isEmpty(getFormattedQueryString());
+        boolean changed = false;
+        changed |= setShortcutEnabled(SHORTCUT_ADD_NUMBER_TO_CONTACTS, showNumberShortcuts);
+        changed |= setShortcutEnabled(SHORTCUT_MAKE_VIDEO_CALL,
+                showNumberShortcuts && CallUtil.isVideoEnabled(getContext()));
+        if (changed) {
+            notifyDataSetChanged();
+        }
+        super.setQueryString(queryString);
     }
 }

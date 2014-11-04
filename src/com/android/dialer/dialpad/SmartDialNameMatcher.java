@@ -34,7 +34,7 @@ import java.util.ArrayList;
  */
 public class SmartDialNameMatcher {
 
-    private final String mQuery;
+    private String mQuery;
 
     // Whether or not we allow matches like 57 - (J)ohn (S)mith
     private static final boolean ALLOW_INITIAL_MATCH = true;
@@ -133,10 +133,6 @@ public class SmartDialNameMatcher {
                     SmartDialPrefix.parsePhoneNumber(phoneNumber);
 
             if (phoneNumberTokens == null) {
-                if (matchPos != null) {
-                    replaceBitInMask(builder, matchPos);
-                    mPhoneNumberMatchMask = builder.toString();
-                }
                 return matchPos;
             }
             if (phoneNumberTokens.countryCodeOffset != 0) {
@@ -416,6 +412,10 @@ public class SmartDialNameMatcher {
         // Return a clone of mMatchPositions so that the caller can use it without
         // worrying about it changing
         return new ArrayList<SmartDialMatchPosition>(mMatchPositions);
+    }
+
+    public void setQuery(String query) {
+        mQuery = query;
     }
 
     public String getNameMatchPositionsInString() {

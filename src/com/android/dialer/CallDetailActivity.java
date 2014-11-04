@@ -28,10 +28,15 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.CallLog;
-import android.provider.ContactsContract;
 import android.provider.CallLog.Calls;
 import android.provider.Settings;
 import android.provider.VoicemailContract.Voicemails;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.VoicemailContract.Voicemails;
+import android.telecom.PhoneAccount;
+import android.telephony.TelephonyManager;
+import android.text.BidiFormatter;
+import android.text.TextDirectionHeuristics;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,7 +44,9 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.QuickContactBadge;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,14 +58,17 @@ import com.android.dialer.calllog.CallDetailHistoryAdapter;
 import com.android.dialer.calllog.CallTypeHelper;
 import com.android.dialer.calllog.ContactInfo;
 import com.android.dialer.calllog.ContactInfoHelper;
+import com.android.dialer.calllog.PhoneAccountUtils;
 import com.android.dialer.calllog.PhoneNumberDisplayHelper;
 import com.android.dialer.calllog.PhoneNumberUtilsWrapper;
 import com.android.dialer.util.AsyncTaskExecutor;
 import com.android.dialer.util.AsyncTaskExecutors;
+import com.android.dialer.util.DialerUtils;
 import com.android.dialer.voicemail.VoicemailPlaybackFragment;
 import com.android.dialer.voicemail.VoicemailStatusHelper;
 import com.android.dialer.voicemail.VoicemailStatusHelper.StatusMessage;
 import com.android.dialer.voicemail.VoicemailStatusHelperImpl;
+import com.android.dialerbind.analytics.AnalyticsActivity;
 
 import java.util.List;
 
@@ -68,7 +78,7 @@ import java.util.List;
  * This activity can be either started with the URI of a single call log entry, or with the
  * {@link #EXTRA_CALL_LOG_IDS} extra to specify a group of call log entries.
  */
-public class CallDetailActivity extends Activity implements ProximitySensorAware {
+public class CallDetailActivity extends AnalyticsActivity implements ProximitySensorAware {
     private static final String TAG = "CallDetail";
     private static final boolean DEBUG = false;
 
@@ -102,6 +112,14 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     private PhoneNumberDisplayHelper mPhoneNumberHelper;
     private PhoneCallDetailsHelper mPhoneCallDetailsHelper;
     private TextView mHeaderTextView;
+    private QuickContactBadge mQuickContactBadge;
+    private TextView mCallerName;
+    private TextView mCallerNumber;
+    private TextView mAccountLabel;
+    public static final String VOICEMAIL_FRAGMENT_TAG = "voicemail_fragment";
+
+    private CallTypeHelper mCallTypeHelper;
+    private PhoneNumberDisplayHelper mPhoneNumberHelper;
     private AsyncTaskExecutor mAsyncTaskExecutor;
     private ContactInfoHelper mContactInfoHelper;
 
@@ -118,6 +136,11 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     private View mStatusMessageView;
     private TextView mStatusMessageText;
     private TextView mStatusMessageAction;
+    private TextView mVoicemailTranscription;
+    private LinearLayout mVoicemailHeader;
+
+    private Uri mVoicemailUri;
+    private BidiFormatter mBidiFormatter = BidiFormatter.getInstance();
 
     /** Whether we should show "edit number before call" in the options menu. */
     private boolean mHasEditNumberBeforeCallOption;
@@ -190,6 +213,11 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
         CallLog.Calls.COUNTRY_ISO,
         CallLog.Calls.GEOCODED_LOCATION,
         CallLog.Calls.NUMBER_PRESENTATION,
+        CallLog.Calls.PHONE_ACCOUNT_COMPONENT_NAME,
+        CallLog.Calls.PHONE_ACCOUNT_ID,
+        CallLog.Calls.FEATURES,
+        CallLog.Calls.DATA_USAGE,
+        CallLog.Calls.TRANSCRIPTION
     };
 
     static final int DATE_COLUMN_INDEX = 0;
@@ -199,6 +227,11 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     static final int COUNTRY_ISO_COLUMN_INDEX = 4;
     static final int GEOCODED_LOCATION_COLUMN_INDEX = 5;
     static final int NUMBER_PRESENTATION_COLUMN_INDEX = 6;
+    static final int ACCOUNT_COMPONENT_NAME = 7;
+    static final int ACCOUNT_ID = 8;
+    static final int FEATURES = 9;
+    static final int DATA_USAGE = 10;
+    static final int TRANSCRIPTION_COLUMN_INDEX = 11;
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -212,19 +245,21 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
 
         mCallTypeHelper = new CallTypeHelper(getResources());
         mPhoneNumberHelper = new PhoneNumberDisplayHelper(mResources);
-        mCallDetailHeader = new CallDetailHeader(this, mPhoneNumberHelper);
-        mPhoneCallDetailsHelper = new PhoneCallDetailsHelper(mResources, mCallTypeHelper,
-                new PhoneNumberUtilsWrapper());
         mVoicemailStatusHelper = new VoicemailStatusHelperImpl();
         mAsyncQueryHandler = new CallDetailActivityQueryHandler(this);
-        mHeaderTextView = (TextView) findViewById(R.id.header_text);
-        mStatusMessageView = findViewById(R.id.voicemail_status);
-        mStatusMessageText = (TextView) findViewById(R.id.voicemail_status_message);
-        mStatusMessageAction = (TextView) findViewById(R.id.voicemail_status_action);
+
+        mVoicemailUri = getIntent().getParcelableExtra(EXTRA_VOICEMAIL_URI);
+
+        mQuickContactBadge = (QuickContactBadge) findViewById(R.id.quick_contact_photo);
+        mQuickContactBadge.setOverlay(null);
+        mCallerName = (TextView) findViewById(R.id.caller_name);
+        mCallerNumber = (TextView) findViewById(R.id.caller_number);
+        mAccountLabel = (TextView) findViewById(R.id.phone_account_label);
         mDefaultCountryIso = GeoUtil.getCurrentCountryIso(this);
         mProximitySensorManager = new ProximitySensorManager(this, mProximitySensorListener);
         mContactInfoHelper = new ContactInfoHelper(this, GeoUtil.getCurrentCountryIso(this));
         getActionBar().setDisplayHomeAsUpEnabled(true);
+
         optionallyHandleVoicemail();
         if (getIntent().getBooleanExtra(EXTRA_FROM_NOTIFICATION, false)) {
             closeSystemDialogs();
@@ -241,40 +276,54 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
      * Handle voicemail playback or hide voicemail ui.
      * <p>
      * If the Intent used to start this Activity contains the suitable extras, then start voicemail
-     * playback.  If it doesn't, then hide the voicemail ui.
+     * playback.  If it doesn't, then don't inflate the voicemail ui.
      */
     private void optionallyHandleVoicemail() {
-        View voicemailContainer = findViewById(R.id.voicemail_container);
+
         if (hasVoicemail()) {
+            LayoutInflater inflater =
+                    (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            mVoicemailHeader =
+                    (LinearLayout) inflater.inflate(R.layout.call_details_voicemail_header, null);
+            View voicemailContainer = mVoicemailHeader.findViewById(R.id.voicemail_container);
+            mStatusMessageView = mVoicemailHeader.findViewById(R.id.voicemail_status);
+            mStatusMessageText =
+                    (TextView) mVoicemailHeader.findViewById(R.id.voicemail_status_message);
+            mStatusMessageAction =
+                    (TextView) mVoicemailHeader.findViewById(R.id.voicemail_status_action);
+            mVoicemailTranscription = (
+                    TextView) mVoicemailHeader.findViewById(R.id.voicemail_transcription);
+            ListView historyList = (ListView) findViewById(R.id.history);
+            historyList.addHeaderView(mVoicemailHeader);
             // Has voicemail: add the voicemail fragment.  Add suitable arguments to set the uri
             // to play and optionally start the playback.
             // Do a query to fetch the voicemail status messages.
-            VoicemailPlaybackFragment playbackFragment = new VoicemailPlaybackFragment();
-            Bundle fragmentArguments = new Bundle();
-            fragmentArguments.putParcelable(EXTRA_VOICEMAIL_URI, getVoicemailUri());
-            if (getIntent().getBooleanExtra(EXTRA_VOICEMAIL_START_PLAYBACK, false)) {
-                fragmentArguments.putBoolean(EXTRA_VOICEMAIL_START_PLAYBACK, true);
+            VoicemailPlaybackFragment playbackFragment;
+
+            playbackFragment = (VoicemailPlaybackFragment) getFragmentManager().findFragmentByTag(
+                    VOICEMAIL_FRAGMENT_TAG);
+
+            if (playbackFragment == null) {
+                playbackFragment = new VoicemailPlaybackFragment();
+                Bundle fragmentArguments = new Bundle();
+                fragmentArguments.putParcelable(EXTRA_VOICEMAIL_URI, mVoicemailUri);
+                if (getIntent().getBooleanExtra(EXTRA_VOICEMAIL_START_PLAYBACK, false)) {
+                    fragmentArguments.putBoolean(EXTRA_VOICEMAIL_START_PLAYBACK, true);
+                }
+                playbackFragment.setArguments(fragmentArguments);
+                getFragmentManager().beginTransaction()
+                        .add(R.id.voicemail_container, playbackFragment, VOICEMAIL_FRAGMENT_TAG)
+                                .commitAllowingStateLoss();
             }
-            playbackFragment.setArguments(fragmentArguments);
+
             voicemailContainer.setVisibility(View.VISIBLE);
-            getFragmentManager().beginTransaction()
-                    .add(R.id.voicemail_container, playbackFragment)
-                    .commitAllowingStateLoss();
-            mAsyncQueryHandler.startVoicemailStatusQuery(getVoicemailUri());
-            markVoicemailAsRead(getVoicemailUri());
-        } else {
-            // No voicemail uri: hide the status view.
-            mStatusMessageView.setVisibility(View.GONE);
-            voicemailContainer.setVisibility(View.GONE);
+            mAsyncQueryHandler.startVoicemailStatusQuery(mVoicemailUri);
+            markVoicemailAsRead(mVoicemailUri);
         }
     }
 
     private boolean hasVoicemail() {
-        return getVoicemailUri() != null;
-    }
-
-    private Uri getVoicemailUri() {
-        return getIntent().getParcelableExtra(EXTRA_VOICEMAIL_URI);
+        return mVoicemailUri != null;
     }
 
     private void markVoicemailAsRead(final Uri voicemailUri) {
@@ -299,14 +348,15 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
      * If both are available, the data on the intent takes precedence.
      */
     private Uri[] getCallLogEntryUris() {
-        Uri uri = getIntent().getData();
+        final Uri uri = getIntent().getData();
         if (uri != null) {
             // If there is a data on the intent, it takes precedence over the extra.
             return new Uri[]{ uri };
         }
-        long[] ids = getIntent().getLongArrayExtra(EXTRA_CALL_LOG_IDS);
-        Uri[] uris = new Uri[ids.length];
-        for (int index = 0; index < ids.length; ++index) {
+        final long[] ids = getIntent().getLongArrayExtra(EXTRA_CALL_LOG_IDS);
+        final int numIds = ids == null ? 0 : ids.length;
+        final Uri[] uris = new Uri[numIds];
+        for (int index = 0; index < numIds; ++index) {
             uris[index] = ContentUris.withAppendedId(Calls.CONTENT_URI_WITH_VOICEMAIL, ids[index]);
         }
         return uris;
@@ -314,8 +364,18 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-    	 if (mCallDetailHeader.handleKeyDown(keyCode, event)) {
-    		 return true;
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_CALL: {
+                // Make sure phone isn't already busy before starting direct call
+                TelephonyManager tm = (TelephonyManager)
+                        getSystemService(Context.TELEPHONY_SERVICE);
+                if (tm.getCallState() == TelephonyManager.CALL_STATE_IDLE) {
+                    DialerUtils.startActivityWithErrorToast(this,
+                            CallUtil.getCallIntent(Uri.fromParts(PhoneAccount.SCHEME_TEL, mNumber,
+                                    null)), R.string.call_not_available);
+                    return true;
+                }
+            }
         }
 
         return super.onKeyDown(keyCode, event);
@@ -376,11 +436,45 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                 mNumber = firstDetails.number.toString();
                 final int numberPresentation = firstDetails.numberPresentation;
 
-                // Set the details header, based on the first phone call.
-                mPhoneCallDetailsHelper.setCallDetailsHeader(mHeaderTextView, firstDetails);
-                mCallDetailHeader.updateViews(mNumber, numberPresentation, firstDetails);
-                
-                mHasEditNumberBeforeCallOption = mCallDetailHeader.canEditNumberBeforeCall();
+                // Cache the details about the phone number.
+                final boolean canPlaceCallsTo =
+                    PhoneNumberUtilsWrapper.canPlaceCallsTo(mNumber, numberPresentation);
+                final PhoneNumberUtilsWrapper phoneUtils = new PhoneNumberUtilsWrapper();
+                final boolean isVoicemailNumber = phoneUtils.isVoicemailNumber(mNumber);
+                final boolean isSipNumber = phoneUtils.isSipNumber(mNumber);
+
+                final CharSequence callLocationOrType = getNumberTypeOrLocation(firstDetails);
+
+                final CharSequence displayNumber = mPhoneNumberHelper.getDisplayNumber(
+                        firstDetails.number,
+                        firstDetails.numberPresentation,
+                        firstDetails.formattedNumber);
+                final String displayNumberStr = mBidiFormatter.unicodeWrap(
+                        displayNumber.toString(), TextDirectionHeuristics.LTR);
+
+
+                if (!TextUtils.isEmpty(firstDetails.name)) {
+                    mCallerName.setText(firstDetails.name);
+                    mCallerNumber.setText(callLocationOrType + " " + displayNumberStr);
+                } else {
+                    mCallerName.setText(displayNumberStr);
+                    if (!TextUtils.isEmpty(callLocationOrType)) {
+                        mCallerNumber.setText(callLocationOrType);
+                        mCallerNumber.setVisibility(View.VISIBLE);
+                    } else {
+                        mCallerNumber.setVisibility(View.GONE);
+                    }
+                }
+
+                if (!TextUtils.isEmpty(firstDetails.accountLabel)) {
+                    mAccountLabel.setText(firstDetails.accountLabel);
+                    mAccountLabel.setVisibility(View.VISIBLE);
+                } else {
+                    mAccountLabel.setVisibility(View.GONE);
+                }
+
+                mHasEditNumberBeforeCallOption =
+                        canPlaceCallsTo && !isSipNumber && !isVoicemailNumber;
                 mHasTrashOption = hasVoicemail();
                 mHasRemoveFromCallLogOption = !hasVoicemail();
                 mHasReverseLookupOption = Settings.System.getInt(getContentResolver(),
@@ -390,37 +484,51 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                 ListView historyList = (ListView) findViewById(R.id.history);
                 historyList.setAdapter(
                         new CallDetailHistoryAdapter(CallDetailActivity.this, mInflater,
-                                mCallTypeHelper, details, hasVoicemail(),
-                                mCallDetailHeader.canPlaceCallsTo(),
-                                findViewById(R.id.controls)));
-                BackScrollManager.bind(
-                        new ScrollableHeader() {
-                            private View mControls = findViewById(R.id.controls);
-                            private View mPhoto = findViewById(R.id.contact_background_sizer);
-                            private View mHeader = findViewById(R.id.photo_text_bar);
-                        private View mSeparator = findViewById(R.id.separator);
+                                mCallTypeHelper, details));
 
-                            @Override
-                            public void setOffset(int offset) {
-                                mControls.setY(-offset);
-                            }
+                String lookupKey = contactUri == null ? null
+                        : ContactInfoHelper.getLookupKeyFromUri(contactUri);
 
-                            @Override
-                            public int getMaximumScrollableHeaderOffset() {
-                                // We can scroll the photo out, but we should keep the header if
-                                // present.
-                                if (mHeader.getVisibility() == View.VISIBLE) {
-                                    return mPhoto.getHeight() - mHeader.getHeight();
-                                } else {
-                                    // If the header is not present, we should also scroll out the
-                                    // separator line.
-                                    return mPhoto.getHeight() + mSeparator.getHeight();
-                                }
-                            }
-                        },
-                        historyList);
-                mCallDetailHeader.loadContactPhotos(firstDetails.photoUri);
+                final boolean isBusiness = mContactInfoHelper.isBusiness(firstDetails.sourceType);
+
+                final int contactType =
+                        isVoicemailNumber? ContactPhotoManager.TYPE_VOICEMAIL :
+                        isBusiness ? ContactPhotoManager.TYPE_BUSINESS :
+                        ContactPhotoManager.TYPE_DEFAULT;
+
+                String nameForDefaultImage;
+                if (TextUtils.isEmpty(firstDetails.name)) {
+                    nameForDefaultImage = mPhoneNumberHelper.getDisplayNumber(firstDetails.number,
+                            firstDetails.numberPresentation,
+                            firstDetails.formattedNumber).toString();
+                } else {
+                    nameForDefaultImage = firstDetails.name.toString();
+                }
+
+                if (hasVoicemail() && !TextUtils.isEmpty(firstDetails.transcription)) {
+                    mVoicemailTranscription.setText(firstDetails.transcription);
+                    mVoicemailTranscription.setVisibility(View.VISIBLE);
+                }
+
+                loadContactPhotos(
+                        contactUri, photoUri, nameForDefaultImage, lookupKey, contactType);
                 findViewById(R.id.call_detail).setVisibility(View.VISIBLE);
+            }
+
+            /**
+             * Determines the location geocode text for a call, or the phone number type
+             * (if available).
+             *
+             * @param details The call details.
+             * @return The phone number type or location.
+             */
+            private CharSequence getNumberTypeOrLocation(PhoneCallDetails details) {
+                if (!TextUtils.isEmpty(details.name)) {
+                    return Phone.getTypeLabel(mResources, details.numberType,
+                            details.numberLabel);
+                } else {
+                    return details.geocode;
+                }
             }
         }
         mAsyncTaskExecutor.submit(Tasks.UPDATE_PHONE_CALL_DETAILS, new UpdateContactDetailsTask());
@@ -444,6 +552,12 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
             final int callType = callCursor.getInt(CALL_TYPE_COLUMN_INDEX);
             String countryIso = callCursor.getString(COUNTRY_ISO_COLUMN_INDEX);
             final String geocode = callCursor.getString(GEOCODED_LOCATION_COLUMN_INDEX);
+            final String transcription = callCursor.getString(TRANSCRIPTION_COLUMN_INDEX);
+
+            final String accountLabel = PhoneAccountUtils.getAccountLabel(this,
+                    PhoneAccountUtils.getAccount(
+                    callCursor.getString(ACCOUNT_COMPONENT_NAME),
+                    callCursor.getString(ACCOUNT_ID)));
 
             if (TextUtils.isEmpty(countryIso)) {
                 countryIso = mDefaultCountryIso;
@@ -482,20 +596,62 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                 lookupUri = info.lookupUri;
                 sourceType = info.sourceType;
             }
-
-            if (DEBUG) {
-                Log.d(TAG, "callUri = " + callUri);
-                Log.d(TAG, "lookupUri = " + lookupUri);
+            final int features = callCursor.getInt(FEATURES);
+            Long dataUsage = null;
+            if (!callCursor.isNull(DATA_USAGE)) {
+                dataUsage = callCursor.getLong(DATA_USAGE);
             }
-
             return new PhoneCallDetails(number, numberPresentation,
                     formattedNumber, countryIso, geocode,
                     new int[]{ callType }, date, duration,
-                    nameText, numberType, numberLabel, lookupUri, photoUri, sourceType);
+                    nameText, numberType, numberLabel, lookupUri, photoUri, sourceType,
+                    accountLabel, null, features, dataUsage, transcription);
         } finally {
             if (callCursor != null) {
                 callCursor.close();
             }
+        }
+    }
+
+    /** Load the contact photos and places them in the corresponding views. */
+    private void loadContactPhotos(Uri contactUri, Uri photoUri, String displayName,
+            String lookupKey, int contactType) {
+
+        final DefaultImageRequest request = new DefaultImageRequest(displayName, lookupKey,
+                contactType, true /* isCircular */);
+
+        mQuickContactBadge.assignContactUri(contactUri);
+        mQuickContactBadge.setContentDescription(
+                mResources.getString(R.string.description_contact_details, displayName));
+
+        mContactPhotoManager.loadDirectoryPhoto(mQuickContactBadge, photoUri,
+                false /* darkTheme */, true /* isCircular */, request);
+    }
+
+    static final class ViewEntry {
+        public final String text;
+        public final Intent primaryIntent;
+        /** The description for accessibility of the primary action. */
+        public final String primaryDescription;
+
+        public CharSequence label = null;
+        /** Icon for the secondary action. */
+        public int secondaryIcon = 0;
+        /** Intent for the secondary action. If not null, an icon must be defined. */
+        public Intent secondaryIntent = null;
+        /** The description for accessibility of the secondary action. */
+        public String secondaryDescription = null;
+
+        public ViewEntry(String text, Intent intent, String description) {
+            this.text = text;
+            primaryIntent = intent;
+            primaryDescription = description;
+        }
+
+        public void setSecondaryAction(int icon, Intent intent, String description) {
+            secondaryIcon = icon;
+            secondaryIntent = intent;
+            secondaryDescription = description;
         }
     }
 
@@ -520,7 +676,8 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
             mStatusMessageAction.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    startActivity(new Intent(Intent.ACTION_VIEW, message.actionUri));
+                    DialerUtils.startActivityWithErrorToast(CallDetailActivity.this,
+                            new Intent(Intent.ACTION_VIEW, message.actionUri));
                 }
             });
         } else {
@@ -580,40 +737,33 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                     public void onPostExecute(Void result) {
                         finish();
                     }
-                });
+                }
+        );
     }
 
     public void onMenuEditNumberBeforeCall(MenuItem menuItem) {
         startActivity(new Intent(Intent.ACTION_DIAL, CallUtil.getCallUri(mNumber)));
     }
 
-    public void onMenuTrashVoicemail(MenuItem menuItem) {
-        final Uri voicemailUri = getVoicemailUri();
-        mAsyncTaskExecutor.submit(Tasks.DELETE_VOICEMAIL_AND_FINISH,
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    public Void doInBackground(Void... params) {
-                        getContentResolver().delete(voicemailUri, null, null);
-                        return null;
-                    }
-                    @Override
-                    public void onPostExecute(Void result) {
-                        finish();
-                    }
-                });
-    }
-
     public void onMenuReverseLookup(MenuItem menuItem) {
         updateData(true, getCallLogEntryUris());
     }
 
-    /** Invoked when the user presses the home button in the action bar. */
-    private void onHomeSelected() {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Calls.CONTENT_URI);
-        // This will open the call log even if the detail view has been opened directly.
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
+    public void onMenuTrashVoicemail(MenuItem menuItem) {
+        mAsyncTaskExecutor.submit(Tasks.DELETE_VOICEMAIL_AND_FINISH,
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    public Void doInBackground(Void... params) {
+                        getContentResolver().delete(mVoicemailUri, null, null);
+                        return null;
+                    }
+
+                    @Override
+                    public void onPostExecute(Void result) {
+                        finish();
+                    }
+                }
+        );
     }
 
     @Override
@@ -636,5 +786,14 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
 
     private void closeSystemDialogs() {
         sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+    }
+
+    /** Returns the given text, forced to be left-to-right. */
+    private static CharSequence forceLeftToRight(CharSequence text) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(LEFT_TO_RIGHT_EMBEDDING);
+        sb.append(text);
+        sb.append(POP_DIRECTIONAL_FORMATTING);
+        return sb.toString();
     }
 }

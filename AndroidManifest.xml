@@ -18,7 +18,7 @@
     package="com.android.dialer"
     coreApp="true">
 
-    <uses-permission android:name="android.permission.CALL_PRIVILEGED" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
@@ -40,13 +40,14 @@
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.CONTROL_INCALL_EXPERIENCE" />
     <uses-permission android:name="com.android.voicemail.permission.ADD_VOICEMAIL" />
-    <uses-permission android:name="com.android.voicemail.permission.READ_WRITE_ALL_VOICEMAIL" />
+    <uses-permission android:name="com.android.voicemail.permission.WRITE_VOICEMAIL" />
+    <uses-permission android:name="com.android.voicemail.permission.READ_VOICEMAIL" />
     <uses-permission android:name="android.permission.ALLOW_ANY_CODEC_FOR_PLAYBACK" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
-    <!-- allow broadcasting secret code intents that reboot the phone -->
-    <uses-permission android:name="android.permission.REBOOT" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <!-- This tells the activity manager to not delay any of our activity
      start requests, even if they happen immediately after the user
      presses home. -->
@@ -67,12 +68,11 @@
              stateAlwaysHidden is set to suppress keyboard show up on
              dialpad screen. -->
         <activity android:name=".DialtactsActivity"
-            android:label="@string/launcherDialer"
-            android:theme="@style/DialtactsThemeHiddenActionBar"
+            android:label="@string/launcherActivityLabel"
+            android:theme="@style/DialtactsActivityTheme"
             android:launchMode="singleTask"
             android:clearTaskOnLaunch="true"
             android:icon="@mipmap/ic_launcher_phone"
-            android:screenOrientation="portrait"
             android:enabled="@*android:bool/config_voice_capable"
             android:windowSoftInputMode="stateAlwaysHidden|adjustNothing">
             <intent-filter>
@@ -122,12 +122,21 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.TAB" />
             </intent-filter>
+            <meta-data
+                android:name="com.android.keyguard.layout"
+                android:resource="@layout/keyguard_preview" />
+        </activity>
+
+        <activity android:name="com.android.dialer.settings.DialerSettingsActivity"
+                  android:label="@string/dialer_settings_label"
+                  android:parentActivityName="com.android.dialer.DialtactsActivity"
+                  android:theme="@style/SettingsStyle"
+                  android:exported="false">
         </activity>
 
         <activity android:name="com.android.dialer.calllog.CallLogActivity"
             android:label="@string/call_log_activity_title"
-            android:theme="@style/DialtactsThemeWithActionBarOverlay"
-            android:screenOrientation="portrait"
+            android:theme="@style/DialtactsThemeWithoutActionBarOverlay"
             android:icon="@mipmap/ic_launcher_phone">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -137,16 +146,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.android.dialer.list.AllContactsActivity"
-            android:label="@string/show_all_contacts_title"
-            android:theme="@style/DialtactsThemeWithActionBarOverlay"
-            android:screenOrientation="portrait">
-        </activity>
-
         <activity android:name="com.android.dialer.CallDetailActivity"
                   android:label="@string/callDetailTitle"
                   android:theme="@style/CallDetailActivityTheme"
-                  android:screenOrientation="portrait"
                   android:icon="@mipmap/ic_launcher_phone"
                   android:parentActivityName="com.android.dialer.calllog.CallLogActivity"
             >
@@ -208,24 +210,11 @@
         <activity android:name="com.android.contacts.common.vcard.ImportVCardActivity"
                   android:configChanges="orientation|screenSize|keyboardHidden"
                   android:theme="@style/BackgroundOnlyTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <data android:mimeType="text/directory"/>
-                <data android:mimeType="text/vcard"/>
-                <data android:mimeType="text/x-vcard"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
         </activity>
 
         <activity android:name="com.android.contacts.common.vcard.NfcImportVCardActivity"
                   android:configChanges="orientation|screenSize|keyboardHidden"
                   android:theme="@style/BackgroundOnlyTheme">
-            <intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
-                <data android:mimeType="text/vcard"/>
-                <data android:mimeType="text/x-vcard"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
         </activity>
 
         <activity android:name="com.android.contacts.common.vcard.CancelActivity"
@@ -273,6 +262,13 @@
             android:name=".contact.ContactUpdateService"
             android:exported="false" />
 
+        <!-- Broadcast receiver that passively listens to location updates -->
+        <receiver android:name="com.android.contacts.common.location.CountryDetector$LocationChangedReceiver"/>
+
+        <!-- IntentService to update the user's current country -->
+        <service android:name="com.android.contacts.common.location.UpdateCountryService"
+            android:exported="false"/>
+
         <!-- Main in-call UI activity.  This is never launched directly
              from outside the phone app; instead, it's either launched by
              the OutgoingCallBroadcaster (for outgoing calls), or as the
@@ -282,10 +278,10 @@
                   android:label="@string/phoneAppLabel"
                   android:excludeFromRecents="true"
                   android:launchMode="singleInstance"
-                  android:screenOrientation="nosensor"
                   android:configChanges="keyboardHidden"
                   android:exported="false"
-                  android:process="com.android.incallui">
+                  android:process="com.android.incallui"
+                  android:screenOrientation="nosensor" >
         </activity>
 
         <activity android:name="com.android.incallui.InCallCardActivity"
@@ -319,5 +315,12 @@
             android:authorities="com.android.dialer.omni.cachedplaces"
             android:exported="false" />
 
+        <service android:name="com.android.incallui.InCallServiceImpl"
+                 android:process="com.android.incallui"
+                 android:permission="android.permission.BIND_INCALL_SERVICE" >
+            <intent-filter>
+                <action android:name="android.telecom.InCallService"/>
+            </intent-filter>
+        </service>
     </application>
 </manifest>

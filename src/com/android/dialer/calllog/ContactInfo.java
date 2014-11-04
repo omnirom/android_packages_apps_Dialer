@@ -38,6 +38,8 @@ public class ContactInfo {
     public long photoId;
     /** The high-res photo for the contact, if available. */
     public Uri photoUri;
+    public boolean isBadData;
+    public String objectId;
 
     public static ContactInfo EMPTY = new ContactInfo();
 
@@ -72,6 +74,7 @@ public class ContactInfo {
         if (!TextUtils.equals(normalizedNumber, other.normalizedNumber)) return false;
         if (photoId != other.photoId) return false;
         if (!UriUtils.areEqual(photoUri, other.photoUri)) return false;
+        if (!TextUtils.equals(objectId, other.objectId)) return false;
         return true;
     }
 
@@ -80,6 +83,6 @@ public class ContactInfo {
         return Objects.toStringHelper(this).add("lookupUri", lookupUri).add("name", name).add(
                 "type", type).add("label", label).add("number", number).add("formattedNumber",
                 formattedNumber).add("normalizedNumber", normalizedNumber).add("photoId", photoId)
-                .add("photoUri", photoUri).toString();
+                .add("photoUri", photoUri).add("objectId", objectId).toString();
     }
 }

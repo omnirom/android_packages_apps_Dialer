@@ -17,24 +17,25 @@
 package com.android.dialer;
 
 import android.content.res.Resources;
-import android.graphics.Typeface;
-import android.provider.ContactsContract;
+import android.provider.CallLog;
+import android.provider.CallLog.Calls;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
-import android.telephony.PhoneNumberUtils;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.view.View;
 import android.widget.TextView;
 
-import com.android.contacts.common.test.NeededForTesting;
+import com.android.contacts.common.CallUtil;
+import com.android.contacts.common.testing.NeededForTesting;
+import com.android.contacts.common.util.PhoneNumberHelper;
 import com.android.dialer.calllog.CallTypeHelper;
 import com.android.dialer.calllog.ContactInfo;
 import com.android.dialer.calllog.PhoneNumberDisplayHelper;
 import com.android.dialer.calllog.PhoneNumberUtilsWrapper;
+import com.android.dialer.util.DialerUtils;
+import com.google.common.collect.Lists;
+
+import java.util.ArrayList;
 
 /**
  * Helper class to fill in the views in {@link PhoneCallDetailsViews}.
@@ -47,9 +48,13 @@ public class PhoneCallDetailsHelper {
     /** The injected current time in milliseconds since the epoch. Used only by tests. */
     private Long mCurrentTimeMillisForTest;
     // Helper classes.
-    private final CallTypeHelper mCallTypeHelper;
     private final PhoneNumberDisplayHelper mPhoneNumberHelper;
     private final PhoneNumberUtilsWrapper mPhoneNumberUtilsWrapper;
+
+    /**
+     * List of items to be concatenated together for accessibility descriptions
+     */
+    private ArrayList<CharSequence> mDescriptionItems = Lists.newArrayList();
 
     /**
      * Creates a new instance of the helper.
@@ -61,20 +66,26 @@ public class PhoneCallDetailsHelper {
     public PhoneCallDetailsHelper(Resources resources, CallTypeHelper callTypeHelper,
             PhoneNumberUtilsWrapper phoneUtils) {
         mResources = resources;
-        mCallTypeHelper = callTypeHelper;
         mPhoneNumberUtilsWrapper = phoneUtils;
         mPhoneNumberHelper = new PhoneNumberDisplayHelper(mPhoneNumberUtilsWrapper, resources);
     }
 
     /** Fills the call details views with content. */
-    public void setPhoneCallDetails(PhoneCallDetailsViews views, PhoneCallDetails details,
-            boolean isHighlighted) {
+    public void setPhoneCallDetails(PhoneCallDetailsViews views, PhoneCallDetails details) {
         // Display up to a given number of icons.
         views.callTypeIcons.clear();
         int count = details.callTypes.length;
+        boolean isVoicemail = false;
         for (int index = 0; index < count && index < MAX_CALL_TYPE_ICONS; ++index) {
             views.callTypeIcons.add(details.callTypes[index]);
+            if (index == 0) {
+                isVoicemail = details.callTypes[index] == Calls.VOICEMAIL_TYPE;
+            }
         }
+
+        // Show the video icon if the call had video enabled.
+        views.callTypeIcons.setShowVideo(
+                (details.features & Calls.FEATURES_VIDEO) == Calls.FEATURES_VIDEO);
         views.callTypeIcons.requestLayout();
         views.callTypeIcons.setVisibility(View.VISIBLE);
 
@@ -85,46 +96,65 @@ public class PhoneCallDetailsHelper {
         } else {
             callCount = null;
         }
-        // The color to highlight the count and date in, if any. This is based on the first call.
-        Integer highlightColor =
-                isHighlighted ? mCallTypeHelper.getHighlightedColor(details.callTypes[0]) : null;
 
-        // The date of this call, relative to the current time.
-        CharSequence dateText = getCallDate(details);
+        CharSequence callLocationAndDate = getCallLocationAndDate(details);
 
-        // Set the call count and date.
-        setCallCountAndDate(views, callCount, dateText, highlightColor);
+        // Set the call count, location and date.
+        setCallCountAndDate(views, callCount, callLocationAndDate);
 
-        // Get type of call (ie mobile, home, etc) if known, or the caller's
-        CharSequence numberFormattedLabel = getCallTypeOrLocation(details);
+        // set the account icon if it exists
+        if (details.accountIcon != null) {
+            views.callAccountIcon.setVisibility(View.VISIBLE);
+            views.callAccountIcon.setImageDrawable(details.accountIcon);
+        } else {
+            views.callAccountIcon.setVisibility(View.GONE);
+        }
 
         final CharSequence nameText;
-        final CharSequence numberText;
-        final CharSequence labelText;
         final CharSequence displayNumber =
             mPhoneNumberHelper.getDisplayNumber(details.number,
                     details.numberPresentation, details.formattedNumber);
         if (TextUtils.isEmpty(details.name)) {
             nameText = displayNumber;
-            if (TextUtils.isEmpty(details.geocode)
-                    || mPhoneNumberUtilsWrapper.isVoicemailNumber(details.number)) {
-                numberText = mResources.getString(R.string.call_log_empty_geocode);
-            } else {
-                numberText = details.geocode;
-            }
-            labelText = numberText;
             // We have a real phone number as "nameView" so make it always LTR
             views.nameView.setTextDirection(View.TEXT_DIRECTION_LTR);
         } else {
             nameText = details.name;
-            numberText = displayNumber;
-            labelText = TextUtils.isEmpty(numberFormattedLabel) ? numberText :
-                    numberFormattedLabel;
         }
 
         views.nameView.setText(nameText);
-        views.labelView.setText(labelText);
-        views.labelView.setVisibility(TextUtils.isEmpty(labelText) ? View.GONE : View.VISIBLE);
+
+        if (isVoicemail && !TextUtils.isEmpty(details.transcription)) {
+            views.voicemailTranscriptionView.setText(details.transcription);
+            views.voicemailTranscriptionView.setVisibility(View.VISIBLE);
+        } else {
+            views.voicemailTranscriptionView.setText(null);
+            views.voicemailTranscriptionView.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Builds a string containing the call location and date.
+     *
+     * @param details The call details.
+     * @return The call location and date string.
+     */
+    private CharSequence getCallLocationAndDate(PhoneCallDetails details) {
+        mDescriptionItems.clear();
+
+        // Get type of call (ie mobile, home, etc) if known, or the caller's location.
+        CharSequence callTypeOrLocation = getCallTypeOrLocation(details);
+
+        // Only add the call type or location if its not empty.  It will be empty for unknown
+        // callers.
+        if (!TextUtils.isEmpty(callTypeOrLocation)) {
+            mDescriptionItems.add(callTypeOrLocation);
+        }
+        // The date of this call, relative to the current time.
+        mDescriptionItems.add(getCallDate(details));
+
+        // Create a comma separated list from the call type or location, and call date.
+        return DialerUtils.join(mResources, mDescriptionItems);
     }
 
     /**
@@ -138,13 +168,20 @@ public class PhoneCallDetailsHelper {
         CharSequence numberFormattedLabel = null;
         // Only show a label if the number is shown and it is not a SIP address.
         if (!TextUtils.isEmpty(details.number)
-                && !PhoneNumberUtils.isUriNumber(details.number.toString())) {
+                && !PhoneNumberHelper.isUriNumber(details.number.toString())
+                && !mPhoneNumberUtilsWrapper.isVoicemailNumber(details.number)) {
+
             if (details.numberLabel == ContactInfo.GEOCODE_AS_LABEL) {
                 numberFormattedLabel = details.geocode;
             } else {
                 numberFormattedLabel = Phone.getTypeLabel(mResources, details.numberType,
                         details.numberLabel);
             }
+        }
+
+        if (!TextUtils.isEmpty(details.name) && TextUtils.isEmpty(numberFormattedLabel)) {
+            numberFormattedLabel = mPhoneNumberHelper.getDisplayNumber(details.number,
+                    details.numberPresentation, details.formattedNumber);
         }
         return numberFormattedLabel;
     }
@@ -163,6 +200,7 @@ public class PhoneCallDetailsHelper {
     }
 
     /** Sets the text of the header view for the details page of a phone call. */
+    @NeededForTesting
     public void setCallDetailsHeader(TextView nameView, PhoneCallDetails details) {
         final CharSequence nameText;
         final CharSequence displayNumber =
@@ -197,7 +235,7 @@ public class PhoneCallDetailsHelper {
 
     /** Sets the call count and date. */
     private void setCallCountAndDate(PhoneCallDetailsViews views, Integer callCount,
-            CharSequence dateText, Integer highlightColor) {
+            CharSequence dateText) {
         // Combine the count (if present) and the date.
         final CharSequence text;
         if (callCount != null) {
@@ -207,23 +245,6 @@ public class PhoneCallDetailsHelper {
             text = dateText;
         }
 
-        // Apply the highlight color if present.
-        final CharSequence formattedText;
-        if (highlightColor != null) {
-            formattedText = addBoldAndColor(text, highlightColor);
-        } else {
-            formattedText = text;
-        }
-
-        views.callTypeAndDate.setText(formattedText);
-    }
-
-    /** Creates a SpannableString for the given text which is bold and in the given color. */
-    private CharSequence addBoldAndColor(CharSequence text, int color) {
-        int flags = Spanned.SPAN_INCLUSIVE_INCLUSIVE;
-        SpannableString result = new SpannableString(text);
-        result.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), flags);
-        result.setSpan(new ForegroundColorSpan(color), 0, text.length(), flags);
-        return result;
+        views.callLocationAndDate.setText(text);
     }
 }
