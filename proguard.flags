@@ -13,8 +13,6 @@
 }
 
 # Keep ExtendedLookupDirectories for assets/contacts_extensions.properties
--keep class com.android.dialer.lookup.ExtendedLookupDirectories extends * {
-  *;
-}
+-keep class com.android.dialer.lookup.ExtendedLookupDirectories { *; }
 
 -verbose
