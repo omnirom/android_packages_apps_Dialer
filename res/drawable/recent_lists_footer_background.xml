@@ -19,6 +19,6 @@
     android:color="?android:attr/colorControlHighlight">
     <!-- Mask to constrain the ripple to the bounds of the view. -->
     <item android:id="@android:id/mask">
-        <color android:color="@android:color/white" />
+        <color android:color="@color/exposed_recents_list_footer_bg" />
     </item>
 </ripple>
