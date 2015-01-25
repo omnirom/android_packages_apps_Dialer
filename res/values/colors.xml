@@ -100,5 +100,28 @@
     <color name="dialer_dialpad_touch_tint">#330288d1</color>
 
     <color name="floating_action_button_touch_tint">#80ffffff</color>
+    
+    
+    <!-- Exposed resources for theming -->
+    <color name="exposed_bg_dark">#ffffffff</color>
+    <color name="exposed_bg_light">#ff000000</color>
+    <color name="exposed_primary_text_light">#de000000</color>
+    <color name="exposed_secondary_text_light">#8a000000</color>
+    <color name="exposed_primary_text_dark">#ffffffff</color>
+    <color name="exposed_secondary_text_dark">#b3ffffff</color>
+    <color name="exposed_secondary_bg_color">#333333</color>
+    <color name="exposed_call_log_header">#33b5e5</color>
+    <color name="exposed_call_log_voicemail_status_background">#262626</color>
+    <color name="exposed_call_log_voicemail_status_text">#888888</color>
+    <color name="exposed_call_log_voicemail_status_action_text">#33b5e5</color>
+    <color name="exposed_floating_action_button_solid">#ffffffff</color>
+    <color name="exposed_recents_list_footer_bg">#ffffffff</color>
+    <color name="exposed_dialpad_fragment">#00000000</color>
+    
+    
+    
+    
+    
+    
 
 </resources>
