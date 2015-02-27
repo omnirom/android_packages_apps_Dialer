@@ -62,20 +62,20 @@
         <item name="list_item_text_offset_top">-2dp</item>
         <!-- CallLog -->
         <item name="call_log_primary_text_color">@color/dialtacts_primary_text_color</item>
-	<!-- exposed bg for theming  -->
+        <!-- exposed bg for theming  -->
         <item name="call_log_primary_background_color">@color/exposed_bg_light</item>
         <item name="call_log_secondary_text_color">@color/dialtacts_secondary_text_color</item>
         <item name="call_log_secondary_background_color">@color/exposed_secondary_bg_color</item>
         <item name="call_log_header_color">@color/exposed_call_log_header</item>
         <!-- VoicemailStatus -->
         <item name="call_log_voicemail_status_height">48dip</item>
-	<!-- exposed textcolor and bg for theming  -->
+        <!-- exposed textcolor and bg for theming  -->
         <item name="call_log_voicemail_status_background_color">@color/exposed_call_log_voicemail_status_background</item>
         <item name="call_log_voicemail_status_text_color">@color/exposed_call_log_voicemail_status_text</item>
         <item name="call_log_voicemail_status_action_text_color">@color/exposed_call_log_voicemail_status_action_text</item>
             <!-- Favorites -->
         <item name="favorites_padding_bottom">?android:attr/actionBarSize</item>
-	<!-- exposed textcolor for theming  -->
+        <!-- exposed textcolor for theming  -->
         <item name="android:colorPrimary">@color/exposed_primary_text_dark</item>
         <item name="android:colorPrimaryDark">@color/exposed_secondary_text_light</item>
         <item name="dialpad_key_button_touch_tint">@color/dialer_dialpad_touch_tint</item>
@@ -95,7 +95,7 @@
     </style>
 
     <style name="DialpadTheme" parent="DialtactsTheme">
-      <!-- exposed textcolor for theming  -->
+        <!-- exposed textcolor for theming  -->
         <item name="android:textColorPrimary">@color/exposed_primary_text_dark</item>
     </style>
 
@@ -113,12 +113,12 @@
     <style name="CallDetailActivityTheme" parent="DialtactsThemeWithoutActionBarOverlay">
         <item name="android:windowBackground">@color/background_dialer_results</item>
         <!-- CallLog -->
-	<!-- exposed  bg for theming  -->
+        <!-- exposed  bg for theming  -->
         <item name="call_log_primary_background_color">@color/exposed_bg_dark</item>
         <item name="call_log_secondary_background_color">@color/exposed_bg_dark</item>
         <item name="call_log_header_color">@color/exposed_bg_dark</item>
         <!-- VoicemailStatus -->
-	<!-- exposed bg for theming  -->
+        <!-- exposed bg for theming  -->
         <item name="call_log_voicemail_status_height">48dip</item>
         <item name="call_log_voicemail_status_background_color">@color/exposed_call_log_voicemail_status_background</item>
         <item name="call_log_voicemail_status_text_color">@color/exposed_call_log_voicemail_status_text</item>
@@ -147,14 +147,14 @@
     <!-- Text in the action bar at the top of the screen -->
     <style name="DialtactsActionBarTitleText"
            parent="@android:style/TextAppearance.Material.Widget.ActionBar.Title">
-      <!-- exposed textcolor for theming  -->
+        <!-- exposed textcolor for theming  -->
         <item name="android:textColor">@color/exposed_primary_text_dark</item>
     </style>
 
     <!-- Text style for tabs. -->
     <style name="DialtactsActionBarTabTextStyle"
            parent="android:style/Widget.Material.Light.ActionBar.TabText">
-      <!-- exposed textcolor for theming  -->
+        <!-- exposed textcolor for theming  -->
         <item name="android:textColor">@color/exposed_primary_text_dark</item>
         <item name="android:textSize">@dimen/tab_text_size</item>
         <item name="android:fontFamily">"sans-serif-medium"</item>

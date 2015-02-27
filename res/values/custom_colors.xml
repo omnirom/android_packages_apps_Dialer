@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (C) 2012 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License
+-->
+
+<resources>
+    <!-- Exposed resources for theming -->
+    <color name="exposed_bg_dark">#ffffffff</color>
+    <color name="exposed_bg_light">#ff000000</color>
+    <color name="exposed_primary_text_light">#de000000</color>
+    <color name="exposed_secondary_text_light">#8a000000</color>
+    <color name="exposed_primary_text_dark">#ffffffff</color>
+    <color name="exposed_secondary_text_dark">#b3ffffff</color>
+    <color name="exposed_secondary_bg_color">#333333</color>
+    <color name="exposed_call_log_header">#33b5e5</color>
+    <color name="exposed_call_log_voicemail_status_background">#262626</color>
+    <color name="exposed_call_log_voicemail_status_text">#888888</color>
+    <color name="exposed_call_log_voicemail_status_action_text">#33b5e5</color>
+    <color name="exposed_floating_action_button_solid">#ffffffff</color>
+    <color name="exposed_recents_list_footer_bg">#ffffffff</color>
+    <color name="exposed_dialpad_fragment">#00000000</color>
+</resources>
