@@ -16,10 +16,10 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="nearby_places">Места неподалеку</string>
-  <string name="nearby_places_distance">%1$.1f км</string>
-  <string name="recentCalls_reverseLookup">Обратный просмотр</string>
-  <string name="toast_reverse_lookup">Поиск %1$s в %2$s...</string>
-  <string name="toast_reverse_lookup_failed">Место не найдено.</string>
-  <string name="toast_reverse_lookup_finished">Обратный просмотр завершён.</string>
+  <string name="nearby_places">Località vicine</string>
+  <string name="nearby_places_distance">%1$.1f Km di distanza</string>
+  <string name="recentCalls_reverseLookup">Ricerca inversa</string>
+  <string name="toast_reverse_lookup">Ricerca di %1$s in %2$s...</string>
+  <string name="toast_reverse_lookup_failed">Nessun luogo trovato.</string>
+  <string name="toast_reverse_lookup_finished">Ricerca inversa finita.</string>
 </resources>
