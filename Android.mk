@@ -40,7 +40,8 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
     com.android.services.telephony.common \
     com.android.vcard \
     guava \
-    libphonenumber
+    libphonenumber \
+    telephony-common
 
 LOCAL_PACKAGE_NAME := Dialer
 LOCAL_CERTIFICATE := shared
@@ -50,7 +51,9 @@ LOCAL_PROGUARD_FLAG_FILES := proguard.flags $(incallui_dir)/proguard.flags
 
 # Uncomment the following line to build against the current SDK
 # This is required for building an unbundled app.
-LOCAL_SDK_VERSION := current
+#LOCAL_SDK_VERSION := current
+
+LOCAL_JAVA_LIBRARIES := org.apache.http.legacy
 
 include $(BUILD_PACKAGE)
 
