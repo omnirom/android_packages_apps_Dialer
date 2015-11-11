@@ -17,7 +17,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     android:sharedUserId="com.android.dialer"
     package="com.android.dialer"
-    coreApp="true">
+    coreApp="true"
+    android:versionCode="20210"
+    android:versionName="2.21">
 
     <uses-sdk
         android:minSdkVersion="23"
@@ -172,6 +174,14 @@
         <activity android:name="com.android.contacts.common.test.FragmentTestActivity">
             <intent-filter>
                 <category android:name="android.intent.category.TEST"/>
+            </intent-filter>
+        </activity>
+
+        <activity android:name="com.android.contacts.common.dialog.CallSubjectDialog"
+                  android:theme="@style/Theme.CallSubjectDialogTheme"
+                  android:windowSoftInputMode="stateVisible|adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
             </intent-filter>
         </activity>
 
