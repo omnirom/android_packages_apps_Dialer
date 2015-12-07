@@ -69,7 +69,7 @@
         android:hardwareAccelerated="true"
         android:supportsRtl="true"
         android:backupAgent='com.android.dialer.DialerBackupAgent'
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="true">
 
         <uses-library android:name="org.apache.http.legacy" android:required="false" />
 
