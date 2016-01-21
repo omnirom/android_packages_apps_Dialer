@@ -73,7 +73,7 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
      *   0-98   KitKat
      * </pre>
      */
-    public static final int DATABASE_VERSION = 70004;
+    public static final int DATABASE_VERSION = 4;
     public static final String DATABASE_NAME = "dialer.db";
 
     /**
@@ -409,10 +409,7 @@ public class DialerDatabaseHelper extends SQLiteOpenHelper {
             Log.e(TAG, "Malformed database version..recreating database");
         }
 
-        int base = 70000;
-        db.execSQL("DROP TABLE IF EXISTS " + "cached_number_contacts");
-        if (oldVersion <= (DATABASE_VERSION - base)
-                || (oldVersion >= base && oldVersion < DATABASE_VERSION)) {
+        if (oldVersion < 4) {
             setupTables(db);
             return;
         }
