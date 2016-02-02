@@ -41,7 +41,7 @@
             android:fontFamily="@string/search_font_family"
             android:textColorHint="@color/searchbox_hint_text_color"
             android:gravity="center_vertical"
-            android:hint="@string/dialer_hint_find_contact" />
+            android:hint="@string/dialer_lookup_search_hint" />
 
         <ImageView
             android:id="@+id/voice_search_button"
