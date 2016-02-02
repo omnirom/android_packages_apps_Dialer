@@ -15,7 +15,7 @@
 -->
 <searchable xmlns:android="http://schemas.android.com/apk/res/android"
     android:label="@string/applicationLabel"
-    android:hint="@string/dialer_hint_find_contact"
+    android:hint="@string/dialer_lookup_search_hint"
     android:inputType="textNoSuggestions"
     android:imeOptions="actionSearch"
     android:voiceSearchMode="showVoiceSearchButton|launchRecognizer"
