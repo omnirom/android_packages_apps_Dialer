@@ -134,6 +134,10 @@ public class SpeedDialFragment extends Fragment implements OnItemClickListener,
         public int getApproximateTileWidth() {
             return getView().getWidth();
         }
+
+        @Override
+        public void onContactLongSelected(Uri contactLookupUri, Rect viewRect) {
+        }
     }
 
     private class ScrollListener implements ListView.OnScrollListener {
