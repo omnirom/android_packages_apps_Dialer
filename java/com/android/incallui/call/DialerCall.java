@@ -168,6 +168,7 @@ public class DialerCall implements VideoTechListener, StateChangedListener, Capa
   // since it's not supported.
   private int secondCallWithoutAnswerAndReleasedButtonTimes = 0;
   private VideoTech videoTech;
+  private boolean mIsOutgoing = false;
 
   private com.android.dialer.logging.VideoTech.Type selectedAvailableVideoTechType =
       com.android.dialer.logging.VideoTech.Type.NONE;
@@ -790,8 +791,14 @@ public class DialerCall implements VideoTechListener, StateChangedListener, Capa
             logState.duration,
             newDuration);
       }
+    } else if (state == State.DIALING || state == State.CONNECTING) {
+      mIsOutgoing = true;
     }
     this.state = state;
+  }
+
+  public boolean isOutgoing() {
+    return mIsOutgoing;
   }
 
   public int getNumberPresentation() {

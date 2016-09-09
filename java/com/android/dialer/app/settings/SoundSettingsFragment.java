@@ -97,7 +97,12 @@ public class SoundSettingsFragment extends PreferenceFragment
     if (hasVibrator()) {
       vibrateWhenRinging.setOnPreferenceChangeListener(this);
     } else {
-      getPreferenceScreen().removePreference(vibrateWhenRinging);
+      PreferenceScreen ps = getPreferenceScreen();
+      ps.removePreference(vibrateWhenRinging);
+      ps.removePreference(findPreference(context.getString(R.string.incall_vibrate_outgoing)));
+      ps.removePreference(findPreference(context.getString(R.string.incall_vibrate_call_waiting)));
+      ps.removePreference(findPreference(context.getString(R.string.incall_vibrate_hangup)));
+      ps.removePreference(findPreference(context.getString(R.string.incall_vibrate_45secs)));
       vibrateWhenRinging = null;
     }
 
