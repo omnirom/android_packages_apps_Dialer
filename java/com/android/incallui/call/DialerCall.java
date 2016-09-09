@@ -152,6 +152,7 @@ public class DialerCall implements VideoTechListener, StateChangedListener, Capa
   // Times when a second call is received but AnswerAndRelease button is not shown
   // since it's not supported.
   private int secondCallWithoutAnswerAndReleasedButtonTimes = 0;
+  private boolean mIsOutgoing = false;
 
   public static String getNumberFromHandle(Uri handle) {
     return handle == null ? "" : handle.getSchemeSpecificPart();
@@ -682,7 +683,13 @@ public class DialerCall implements VideoTechListener, StateChangedListener, Capa
     } else if (mState == State.DISCONNECTED) {
       mLogState.duration =
           getConnectTimeMillis() == 0 ? 0 : System.currentTimeMillis() - getConnectTimeMillis();
+    } else if (mState == State.DIALING || mState == State.CONNECTING) {
+      mIsOutgoing = true;
     }
+  }
+
+  public boolean isOutgoing() {
+    return mIsOutgoing;
   }
 
   public int getNumberPresentation() {

@@ -45,6 +45,24 @@
     android:key="@string/vibrate_on_preference_key"
     android:persistent="false"
     android:title="@string/vibrate_on_ring_title"/>
+
+  <SwitchPreference
+    android:key="@string/incall_vibrate_outgoing"
+    android:title="@string/incall_vibrate_outgoing_title" />
+
+  <SwitchPreference
+    android:key="@string/incall_vibrate_call_waiting"
+    android:title="@string/incall_vibrate_call_waiting_title" />
+
+  <SwitchPreference
+    android:key="@string/incall_vibrate_hangup"
+    android:title="@string/incall_vibrate_hangup_title" />
+
+  <SwitchPreference
+    android:key="@string/incall_vibrate_45secs"
+    android:title="@string/incall_vibrate_45_title"
+    android:summary="@string/incall_vibrate_45_summary" />
+
  </PreferenceCategory>
 
  <PreferenceCategory android:title="@string/sound_prefs_sensors_title">
