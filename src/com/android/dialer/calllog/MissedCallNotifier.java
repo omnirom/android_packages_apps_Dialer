@@ -138,7 +138,8 @@ public class MissedCallNotifier {
                 .setContentIntent(createCallLogPendingIntent())
                 .setAutoCancel(true)
                 .setWhen(timeMs)
-                .setDeleteIntent(createClearMissedCallsPendingIntent());
+                .setDeleteIntent(createClearMissedCallsPendingIntent())
+                .setPriority(Notification.PRIORITY_DEFAULT);
 
         // Create the notification suitable for display when sensitive information is showing.
         builder.setSmallIcon(android.R.drawable.stat_notify_missed_call)
@@ -152,7 +153,8 @@ public class MissedCallNotifier {
                 // Include a public version of the notification to be shown when the missed call
                 // notification is shown on the user's lock screen and they have chosen to hide
                 // sensitive notification information.
-                .setPublicVersion(publicBuilder.build());
+                .setPublicVersion(publicBuilder.build())
+                .setPriority(Notification.PRIORITY_DEFAULT);
 
         // Add additional actions when there is only 1 missed call and the user isn't locked
         if (UserManagerCompat.isUserUnlocked(mContext) && count == 1) {
