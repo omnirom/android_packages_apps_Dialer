@@ -33,6 +33,7 @@ import android.content.res.Configuration;
 import android.graphics.Point;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Trace;
 import android.telecom.DisconnectCause;
 import android.telecom.PhoneAccountHandle;
@@ -170,6 +171,12 @@ public class InCallActivity extends TransactionSafeActivity implements FragmentD
                 | WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES;
 
         getWindow().addFlags(flags);
+
+        PowerManager powerManager = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
+        if (powerManager.isSustainedPerformanceModeSupported()) {
+            // Enable Sustained Performance Mode
+            getWindow().setSustainedPerformanceMode(true);
+        }
 
         // Setup action bar for the conference call manager.
         requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
