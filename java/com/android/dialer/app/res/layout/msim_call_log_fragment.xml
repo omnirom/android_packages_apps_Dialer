@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (c) 2013-2015, 2017, The Linux Foundation. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of The Linux Foundation, Inc. nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!-- Layout parameters are set programmatically. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_dialer_call_log">
+
+    <LinearLayout
+        android:id="@+id/multi_select_select_all_view_content"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/tab_height"
+        android:layout_gravity="start"
+        android:background="@color/actionbar_background_color"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+      <ImageView
+          android:id="@+id/select_all_view_icon"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:paddingLeft="@dimen/select_all_icon_padding"
+          android:paddingRight="@dimen/select_all_icon_padding"
+          android:gravity="center_vertical"
+          android:src="@drawable/ic_empty_check_mark_white_24dp"/>
+      <TextView
+          android:id="@+id/select_all_view_text"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:paddingLeft="@dimen/select_all_text_left_padding"
+          android:gravity="center_vertical"
+          android:text="@string/select_all"
+          android:textAllCaps="true"
+          android:textStyle="bold"
+          android:textColor="@color/remove_text_color"
+          android:textSize="@dimen/select_all_text_size"/>
+    </LinearLayout>
+
+    <include layout="@layout/msim_call_log_spinner" />
+
+    <FrameLayout
+        android:id="@+id/modal_message_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"/>
+
+    <android.support.v7.widget.RecyclerView android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_dialer_call_log"
+        android:paddingStart="@dimen/call_log_horizontal_margin"
+        android:paddingEnd="@dimen/call_log_horizontal_margin" />
+
+    <com.android.dialer.widget.EmptyContentView
+        android:id="@+id/empty_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</LinearLayout>
