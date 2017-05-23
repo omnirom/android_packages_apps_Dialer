@@ -238,4 +238,10 @@
     <string name="view_conversation" msgid="7895904782094119702">"查看"</string>
     <string name="ec_data_deleted" msgid="4794880345545827107">"通话已删除。请前往“信息”应用查看和删除通过此通话分享的附件。"</string>
     <string name="multiple_ec_data_deleted" msgid="2971579891973176316">"通话已删除。请前往“信息”应用查看和删除通过通话分享的附件。"</string>
+    <string name="call_log_show_all_slots">"所有 SIM 卡"</string>
+    <string name="call_log_all_calls_header">"所有通话"</string>
+    <!-- Text displayed when the list of incoming calls is empty -->
+    <string name="recentIncoming_empty">"您没有任何来电。"</string>
+    <!-- Text displayed when the list of outgoing calls is empty -->
+    <string name="recentOutgoing_empty">"您没有任何外拨电话。"</string>
 </resources>
