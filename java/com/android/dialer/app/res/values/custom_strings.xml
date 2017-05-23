@@ -40,5 +40,9 @@
   <string name="type_incoming_volte">Incoming 4G voice call</string>
   <string name="type_outgoing_volte">Outgoing 4G voice call</string>
   <string name="type_missed_volte">Missed 4G voice call</string>
+  <string name="recentIncoming_empty">You have no incoming calls.</string>
+  <string name="recentOutgoing_empty">You have no outgoing calls.</string>
+  <string name="call_log_show_all_slots">All SIMs</string>
+  <string name="call_log_all_calls_header">All calls</string>
 
 </resources>
