@@ -37,4 +37,8 @@
   <string name="incall_vibrate_45_title">Vibrate every minute</string>
   <string name="incall_vibrate_45_summary">Vibrates at the 45 second mark of every minute during outgoing calls</string>
 
+  <string name="type_incoming_volte">Incoming 4G voice call</string>
+  <string name="type_outgoing_volte">Outgoing 4G voice call</string>
+  <string name="type_missed_volte">Missed 4G voice call</string>
+
 </resources>
