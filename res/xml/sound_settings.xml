@@ -43,4 +43,10 @@
         android:entries="@array/dtmf_tone_length_entries"
         android:entryValues="@array/dtmf_tone_length_entry_values" />
 
+    <CheckBoxPreference
+        android:key="call_dnd_enabled"
+        android:title="@string/call_dnd_enabled_title"
+        android:persistent="false"
+        android:defaultValue="true" />
+
 </PreferenceScreen>
