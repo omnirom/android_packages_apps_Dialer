@@ -55,10 +55,14 @@ public class SoundSettingsFragment extends PreferenceFragment
 
     private static final int MSG_UPDATE_RINGTONE_SUMMARY = 1;
 
+    private static final String KEY_CALL_DND_ENABLED = "call_dnd_enabled";
+    private static final String CALL_DND_ENABLED = "call_dnd_enabled";
+
     private Preference mRingtonePreference;
     private CheckBoxPreference mVibrateWhenRinging;
     private CheckBoxPreference mPlayDtmfTone;
     private ListPreference mDtmfToneLength;
+    private CheckBoxPreference mCallDndEnabled;
 
     private final Runnable mRingtoneLookupRunnable = new Runnable() {
         @Override
@@ -98,6 +102,12 @@ public class SoundSettingsFragment extends PreferenceFragment
                 context.getString(R.string.play_dtmf_preference_key));
         mDtmfToneLength = (ListPreference) findPreference(
                 context.getString(R.string.dtmf_tone_length_preference_key));
+
+        mCallDndEnabled = (CheckBoxPreference) findPreference(KEY_CALL_DND_ENABLED);
+        boolean dndModeEnabled = Settings.System.getInt(context.getContentResolver(),
+                CALL_DND_ENABLED, 1) == 1;
+        mCallDndEnabled.setChecked(dndModeEnabled);
+        mCallDndEnabled.setOnPreferenceChangeListener(this);
 
         if (hasVibrator()) {
             mVibrateWhenRinging.setOnPreferenceChangeListener(this);
@@ -169,6 +179,10 @@ public class SoundSettingsFragment extends PreferenceFragment
             int index = mDtmfToneLength.findIndexOfValue((String) objValue);
             Settings.System.putInt(getActivity().getContentResolver(),
                     Settings.System.DTMF_TONE_TYPE_WHEN_DIALING, index);
+        } else if (preference == mCallDndEnabled) {
+            Boolean value = (Boolean) objValue;
+            Settings.System.putInt(getActivity().getContentResolver(),
+                    CALL_DND_ENABLED, value ? 1 : 0);
         }
         return true;
     }
