@@ -29,6 +29,9 @@ import android.support.annotation.Nullable;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -271,6 +274,14 @@ public class SelectPhoneAccountDialogFragment extends DialogFragment {
         return rowView;
       }
       holder.labelTextView.setText(account.getLabel());
+
+      int subId = getContext().getSystemService(TelephonyManager.class).getSubIdForPhoneAccount(account);
+      if (subId != SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
+        final SubscriptionInfo sir = SubscriptionManager.from(getContext()).getActiveSubscriptionInfo(subId);
+        if (sir != null) {
+            holder.labelTextView.setText(getSubscriptionDisplayName(sir));
+        }
+      }
       if (account.getAddress() == null
           || TextUtils.isEmpty(account.getAddress().getSchemeSpecificPart())) {
         holder.numberTextView.setVisibility(View.GONE);
@@ -283,6 +294,16 @@ public class SelectPhoneAccountDialogFragment extends DialogFragment {
       holder.imageView.setImageDrawable(
           PhoneAccountCompat.createIconDrawable(account, getContext()));
       return rowView;
+    }
+
+    private String getSubscriptionDisplayName(SubscriptionInfo sir) {
+      return sir.getDisplayName() + " - " + getSubscriptionCarrierName(sir);
+    }
+
+    private String getSubscriptionCarrierName(SubscriptionInfo sir) {
+      CharSequence simCarrierName = sir.getCarrierName();
+      return !TextUtils.isEmpty(simCarrierName) ? simCarrierName.toString() :
+                getContext().getString(com.android.internal.R.string.unknownName);
     }
 
     private static final class ViewHolder {
