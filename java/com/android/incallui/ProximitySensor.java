@@ -224,7 +224,7 @@ public class ProximitySensor
     // proximity sensor turn off the screen by their hands.
     screenOnImmediately |= mDialpadVisible && horizontal;
 
-    LogUtil.i(
+    LogUtil.e(
         "ProximitySensor.updateProximitySensorMode",
         "screenOnImmediately: %b, dialPadVisible: %b, "
             + "offHook: %b, horizontal: %b, uiShowing: %b, audioRoute: %s",
