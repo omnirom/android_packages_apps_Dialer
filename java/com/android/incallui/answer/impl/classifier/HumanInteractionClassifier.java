@@ -21,6 +21,7 @@ import android.hardware.SensorEvent;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import com.android.dialer.configprovider.ConfigProviderBindings;
+import com.android.dialer.R;
 
 /** An classifier trying to determine whether it is a human interacting with the phone or not. */
 class HumanInteractionClassifier extends Classifier {
@@ -35,6 +36,8 @@ class HumanInteractionClassifier extends Classifier {
 
   HumanInteractionClassifier(Context context) {
     DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+    final boolean defaultValue = context.getResources().getBoolean(
+                R.bool.config_answerAntiFalsingClassifierEnabled);
 
     // If the phone is rotated to landscape, the calculations would be wrong if xdpi and ydpi
     // were to be used separately. Due negligible differences in xdpi and ydpi we can just
@@ -45,7 +48,7 @@ class HumanInteractionClassifier extends Classifier {
     historyEvaluator = new HistoryEvaluator();
     enabled =
         ConfigProviderBindings.get(context)
-            .getBoolean(CONFIG_ANSWER_FALSE_TOUCH_DETECTION_ENABLED, true);
+            .getBoolean(CONFIG_ANSWER_FALSE_TOUCH_DETECTION_ENABLED, defaultValue);
 
     strokeClassifiers =
         new StrokeClassifier[] {
