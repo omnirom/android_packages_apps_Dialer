@@ -17,6 +17,7 @@
 package com.android.incallui;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.DisplayManager.DisplayListener;
 import android.os.PowerManager;
@@ -30,6 +31,8 @@ import com.android.incallui.audiomode.AudioModeProvider;
 import com.android.incallui.audiomode.AudioModeProvider.AudioModeListener;
 import com.android.incallui.call.CallList;
 import com.android.incallui.call.DialerCall;
+import com.android.dialer.app.settings.SoundSettingsFragment;
+import android.preference.PreferenceManager;
 
 /**
  * Class manages the proximity sensor for the in-call UI. We enable the proximity sensor while the
@@ -42,6 +45,7 @@ public class ProximitySensor
     implements AccelerometerListener.OrientationListener, InCallStateListener, AudioModeListener {
 
   private static final String TAG = ProximitySensor.class.getSimpleName();
+  private static final String PREF_KEY_DISABLE_PROXI_SENSOR = "disable_proximity_sensor_key";
 
   private final PowerManager mPowerManager;
   private final PowerManager.WakeLock mProximityWakeLock;
@@ -54,17 +58,25 @@ public class ProximitySensor
   private boolean mDialpadVisible;
   private boolean mIsAttemptingVideoCall;
   private boolean mIsVideoCall;
+  private SharedPreferences mPrefs;
 
   public ProximitySensor(
       @NonNull Context context,
       @NonNull AudioModeProvider audioModeProvider,
       @NonNull AccelerometerListener accelerometerListener) {
     mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-    if (mPowerManager.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)) {
+
+    mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+    final boolean mIsProximitySensorDisabled = mPrefs.getBoolean(PREF_KEY_DISABLE_PROXI_SENSOR, false);
+
+    if (mPowerManager.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)
+          && !mIsProximitySensorDisabled) {
       mProximityWakeLock =
           mPowerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, TAG);
+    } else if (mIsProximitySensorDisabled) {
+      turnOffProximitySensor(true); // Ensure the wakelock is released before destroying it.
+      mProximityWakeLock = null;
     } else {
-      LogUtil.i("ProximitySensor.constructor", "Device does not support proximity wake lock.");
       mProximityWakeLock = null;
     }
     mAccelerometerListener = accelerometerListener;
@@ -204,6 +216,12 @@ public class ProximitySensor
    */
   private synchronized void updateProximitySensorMode() {
     final int audioRoute = mAudioModeProvider.getAudioState().getRoute();
+
+    final boolean mIsProximitySensorDisabled = mPrefs.getBoolean(PREF_KEY_DISABLE_PROXI_SENSOR, false);
+
+    if (mIsProximitySensorDisabled) {
+        return;
+    }
 
     boolean screenOnImmediately =
         (CallAudioState.ROUTE_WIRED_HEADSET == audioRoute

@@ -43,4 +43,9 @@
     android:key="@string/dtmf_tone_length_preference_key"
     android:title="@string/dtmf_tone_length_title"/>
 
+  <SwitchPreference
+    android:defaultValue="false"
+    android:key="disable_proximity_sensor_key"
+    android:title="@string/disable_proximity_sensor_title" />
+
 </PreferenceScreen>
