@@ -787,6 +787,8 @@
     <item>0</item>
     <item>1</item>
   </string-array>
+  <!-- Title of settings to disable proximity sensor in the app -->
+  <string name="disable_proximity_sensor_title">Disable proximity sensor</string>
 
   <!-- Title of settings screen for managing the "Respond via SMS" feature. [CHAR LIMIT=30] -->
   <string name="respond_via_sms_setting_title">Quick responses</string>
@@ -876,6 +878,8 @@
   <string name="play_dtmf_preference_key" translatable="false">button_play_dtmf_tone</string>
   <!-- Internal key for DTMF tone length preference. -->
   <string name="dtmf_tone_length_preference_key" translatable="false">button_dtmf_settings</string>
+  <!-- Internal key for disabling proximity sensor preference. -->
+  <string name="disable_proximity_sensor_key" translatable="false">button_disable_proximity_sensor</string>
 
   <!--  The label of the button used to turn on multiple permissions [CHAR LIMIT=30]-->
   <string name="permission_multiple_turn_on">Set permissions</string>
