@@ -30,6 +30,7 @@ import com.android.incallui.audiomode.AudioModeProvider;
 import com.android.incallui.audiomode.AudioModeProvider.AudioModeListener;
 import com.android.incallui.call.CallList;
 import com.android.incallui.call.DialerCall;
+import com.android.dialer.app.settings.SoundSettingsFragment;
 
 /**
  * Class manages the proximity sensor for the in-call UI. We enable the proximity sensor while the
@@ -54,15 +55,28 @@ public class ProximitySensor
   private boolean mDialpadVisible;
   private boolean mIsAttemptingVideoCall;
   private boolean mIsVideoCall;
+  private boolean mIsProximitySensorDisabled = false;
 
   public ProximitySensor(
       @NonNull Context context,
       @NonNull AudioModeProvider audioModeProvider,
       @NonNull AccelerometerListener accelerometerListener) {
     mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-    if (mPowerManager.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)) {
+
+    if ( SoundSettingsFragment.isSensorDisabled() ) {
+      mIsProximitySensorDisabled = true;
+    } else {
+      mIsProximitySensorDisabled = false;
+    }
+
+    if (mPowerManager.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)
+          && !mIsProximitySensorDisabled) {
       mProximityWakeLock =
           mPowerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, TAG);
+    } else if (mIsProximitySensorDisabled) {
+      LogUtil.i("ProximitySensor.constructor", "Proximity sensor is disabled by user.");
+      turnOffProximitySensor(true); // Ensure the wakelock is released before destroying it.
+      mProximityWakeLock = null;
     } else {
       LogUtil.i("ProximitySensor.constructor", "Device does not support proximity wake lock.");
       mProximityWakeLock = null;
@@ -204,6 +218,11 @@ public class ProximitySensor
    */
   private synchronized void updateProximitySensorMode() {
     final int audioRoute = mAudioModeProvider.getAudioState().getRoute();
+
+    if (mIsProximitySensorDisabled) {
+        LogUtil.v("ProximitySensor.updateProximitySensorMode", "Proximity sensor is disabled by user!");
+        return;
+    }
 
     boolean screenOnImmediately =
         (CallAudioState.ROUTE_WIRED_HEADSET == audioRoute
