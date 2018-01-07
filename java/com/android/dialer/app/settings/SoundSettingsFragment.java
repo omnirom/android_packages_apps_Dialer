@@ -35,9 +35,12 @@ import android.widget.Toast;
 import com.android.dialer.app.R;
 import com.android.dialer.compat.SdkVersionOverride;
 import com.android.dialer.util.SettingsUtil;
+import android.util.Log;
 
 public class SoundSettingsFragment extends PreferenceFragment
     implements Preference.OnPreferenceChangeListener {
+
+  private static final String TAG = PreferenceFragment.class.getSimpleName();
 
   private static final int NO_DTMF_TONE = 0;
   private static final int PLAY_DTMF_TONE = 1;
@@ -46,6 +49,9 @@ public class SoundSettingsFragment extends PreferenceFragment
   private static final int DO_VIBRATION_FOR_CALLS = 1;
 
   private static final int DTMF_TONE_TYPE_NORMAL = 0;
+
+  private static final int PROXIMITY_SENSOR_DISABLED = 0;
+  private static final int PROXIMITY_SENSOR_ENABLED = 1;
 
   private static final int MSG_UPDATE_RINGTONE_SUMMARY = 1;
 
@@ -70,6 +76,8 @@ public class SoundSettingsFragment extends PreferenceFragment
       };
   private SwitchPreference mVibrateWhenRinging;
   private SwitchPreference mPlayDtmfTone;
+  private SwitchPreference mDisableProximitySensor;
+  private static boolean isProsimitySensorDisabled = false;
   private ListPreference mDtmfToneLength;
 
   @Override
@@ -93,6 +101,7 @@ public class SoundSettingsFragment extends PreferenceFragment
     mDtmfToneLength =
         (ListPreference)
             findPreference(context.getString(R.string.dtmf_tone_length_preference_key));
+	mDisableProximitySensor = (SwitchPreference) findPreference(context.getString(R.string.disable_proximity_sensor_key));
 
     if (hasVibrator()) {
       mVibrateWhenRinging.setOnPreferenceChangeListener(this);
@@ -119,6 +128,10 @@ public class SoundSettingsFragment extends PreferenceFragment
       getPreferenceScreen().removePreference(mDtmfToneLength);
       mDtmfToneLength = null;
     }
+
+	mDisableProximitySensor.setOnPreferenceChangeListener(this);
+	mDisableProximitySensor.setChecked(isProximitySensorDisabled());
+
   }
 
   @Override
@@ -188,6 +201,13 @@ public class SoundSettingsFragment extends PreferenceFragment
           Settings.System.DTMF_TONE_WHEN_DIALING,
           mPlayDtmfTone.isChecked() ? PLAY_DTMF_TONE : NO_DTMF_TONE);
     }
+    if (preference == mDisableProximitySensor) {
+      Settings.System.putInt(
+          getActivity().getContentResolver(),
+          Settings.System.DISABLED_PROXIMIT_SENSOR,
+          mDisableProximitySensor.isChecked() ? PROXIMITY_SENSOR_ENABLED : PROXIMITY_SENSOR_DISABLED);
+      isProsimitySensorDisabled = mDisableProximitySensor.isChecked();
+    }
     return true;
   }
 
@@ -224,6 +244,22 @@ public class SoundSettingsFragment extends PreferenceFragment
             Settings.System.DTMF_TONE_WHEN_DIALING,
             PLAY_DTMF_TONE);
     return dtmfToneSetting == PLAY_DTMF_TONE;
+  }
+
+  /** Obtains the value for disabled proximity option. The default value is false */
+   private boolean isProximitySensorDisabled() {
+     int proximitySensorDisabled =
+         Settings.System.getInt(
+           getActivity().getContentResolver(),
+           Settings.System.DISABLED_PROXIMIT_SENSOR,
+           PROXIMITY_SENSOR_ENABLED);
+     Log.v(TAG, "proximitySensorDisabled : " + proximitySensorDisabled);
+
+     return proximitySensorDisabled == PROXIMITY_SENSOR_ENABLED;
+  }
+
+  public static boolean isSensorDisabled() {
+     return isProsimitySensorDisabled;
   }
 
   /** Whether the device hardware has a vibrator. */
