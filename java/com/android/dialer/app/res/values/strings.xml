@@ -761,7 +761,7 @@
 
   <!-- Title for the "Sounds and vibration" settings control settings related to ringtones,
        dialpad tones, and vibration for incoming calls. [CHAR LIMIT=40] -->
-  <string name="sounds_and_vibration_title">Sounds and vibration</string>
+  <string name="sounds_and_vibration_title">Sounds, sensors and vibration</string>
 
   <!-- Title for "Accessibility" category, which controls settings such as TTY mode and hearing
        aid compatability. [CHAR LIMIT=40] -->
