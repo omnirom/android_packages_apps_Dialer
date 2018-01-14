@@ -77,7 +77,7 @@ public class DialerSettingsActivity extends AppCompatPreferenceActivity {
     }
 
     Header soundSettingsHeader = new Header();
-    soundSettingsHeader.titleRes = R.string.sounds_and_vibration_title;
+    soundSettingsHeader.titleRes = R.string.sounds_sensors_and_vibration_title;
     soundSettingsHeader.fragment = SoundSettingsFragment.class.getName();
     soundSettingsHeader.id = R.id.settings_header_sounds_and_vibration;
     target.add(soundSettingsHeader);
