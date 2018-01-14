@@ -16,6 +16,14 @@
   -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <!-- New title for sound settings. Old entry (sounds_and_vibration_title) is keept for compatibility purposes -->
+  <string name="sounds_sensors_and_vibration_title">Sound, sensors &amp; vibration</string>
+
   <!-- Title of settings to disable proximity sensor in the app -->
   <string name="disable_proximity_sensor_title">Disable proximity sensor</string>
+
+  <!-- Setting categories -->
+  <string name="sound_prefs_sensors_title">Sensors</string>
+  <string name="sound_prefs_vibrator_title">Vibrator</string>
+  <string name="sound_prefs_audio_title">Audio</string>
 </resources>
