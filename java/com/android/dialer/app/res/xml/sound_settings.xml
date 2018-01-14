@@ -18,18 +18,13 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+ <PreferenceCategory android:title="@string/sound_prefs_audio_title">
   <com.android.dialer.app.settings.DefaultRingtonePreference
     android:dialogTitle="@string/ringtone_title"
     android:key="@string/ringtone_preference_key"
     android:persistent="false"
     android:ringtoneType="ringtone"
     android:title="@string/ringtone_title"/>
-
-  <SwitchPreference
-    android:defaultValue="false"
-    android:key="@string/vibrate_on_preference_key"
-    android:persistent="false"
-    android:title="@string/vibrate_on_ring_title"/>
 
   <SwitchPreference
     android:defaultValue="true"
@@ -42,10 +37,21 @@
     android:entryValues="@array/dtmf_tone_length_entry_values"
     android:key="@string/dtmf_tone_length_preference_key"
     android:title="@string/dtmf_tone_length_title"/>
+ </PreferenceCategory>
 
+ <PreferenceCategory android:title="@string/sound_prefs_vibrator_title">
+  <SwitchPreference
+    android:defaultValue="false"
+    android:key="@string/vibrate_on_preference_key"
+    android:persistent="false"
+    android:title="@string/vibrate_on_ring_title"/>
+ </PreferenceCategory>
+
+ <PreferenceCategory android:title="@string/sound_prefs_sensors_title">
   <SwitchPreference
     android:defaultValue="false"
     android:key="disable_proximity_sensor_key"
     android:title="@string/disable_proximity_sensor_title" />
+ </PreferenceCategory>
 
 </PreferenceScreen>
