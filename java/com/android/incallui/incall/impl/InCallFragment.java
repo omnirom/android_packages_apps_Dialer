@@ -19,6 +19,9 @@ package com.android.incallui.incall.impl;
 import android.Manifest.permission;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
@@ -29,6 +32,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.ColorUtils;
 import android.telecom.CallAudioState;
 import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
@@ -49,12 +53,14 @@ import com.android.dialer.multimedia.MultimediaData;
 import com.android.dialer.strictmode.StrictModeUtils;
 import com.android.dialer.util.ViewUtil;
 import com.android.dialer.widget.LockableViewPager;
+import com.android.incallui.InCallPresenter;
 import com.android.incallui.audioroute.AudioRouteSelectorDialogFragment;
 import com.android.incallui.audioroute.AudioRouteSelectorDialogFragment.AudioRouteSelectorPresenter;
 import com.android.incallui.contactgrid.ContactGridManager;
 import com.android.incallui.hold.OnHoldFragment;
 import com.android.incallui.incall.impl.ButtonController.SpeakerButtonController;
 import com.android.incallui.incall.impl.InCallButtonGridFragment.OnButtonGridCreatedListener;
+import com.android.incallui.incall.protocol.ContactPhotoType;
 import com.android.incallui.incall.protocol.InCallButtonIds;
 import com.android.incallui.incall.protocol.InCallButtonIdsExtension;
 import com.android.incallui.incall.protocol.InCallButtonUi;
@@ -67,6 +73,7 @@ import com.android.incallui.incall.protocol.PrimaryCallState;
 import com.android.incallui.incall.protocol.PrimaryCallState.ButtonState;
 import com.android.incallui.incall.protocol.PrimaryInfo;
 import com.android.incallui.incall.protocol.SecondaryInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,6 +99,9 @@ public class InCallFragment extends Fragment
   private int voiceNetworkType;
   private int phoneType;
   private boolean stateRestored;
+  private View topPhoneContainer;
+
+  private boolean isFullscreenPhoto = false;
 
   // Add animation to educate users. If a call has enriched calling attachments then we'll
   // initially show the attachment page. After a delay seconds we'll animate to the button grid.
@@ -144,10 +154,21 @@ public class InCallFragment extends Fragment
       @Nullable ViewGroup viewGroup,
       @Nullable Bundle bundle) {
     LogUtil.i("InCallFragment.onCreateView", null);
-    // Bypass to avoid StrictModeResourceMismatchViolation
-    final View view =
-        StrictModeUtils.bypass(
-            () -> layoutInflater.inflate(R.layout.frag_incall_voice, viewGroup, false));
+
+    SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+    isFullscreenPhoto = mPrefs.getBoolean("fullscreen_caller_photo", false);
+
+    int tempRes = R.layout.frag_incall_voice;
+    if(isFullscreenPhoto){
+      tempRes = R.layout.frag_incall_voice_fullscreen_photo;
+    }
+    final int res = tempRes;
+    final View view = StrictModeUtils.bypass(() -> layoutInflater.inflate(res, viewGroup, false));
+
+    if (isFullscreenPhoto) {
+        topPhoneContainer = view.findViewById(R.id.incall_contactgrid_container);
+    }
+
     contactGridManager =
         new ContactGridManager(
             view,
@@ -255,6 +276,19 @@ public class InCallFragment extends Fragment
     LogUtil.i("InCallFragment.setPrimary", primaryInfo.toString());
     setAdapterMedia(primaryInfo.multimediaData(), primaryInfo.showInCallButtonGrid());
     contactGridManager.setPrimary(primaryInfo);
+
+    if(topPhoneContainer != null){
+      boolean hasPhoto = primaryInfo.photo() != null &&
+              primaryInfo.photoType() == ContactPhotoType.CONTACT;
+      int primaryColor = InCallPresenter.getInstance().getThemeColorManager().getPrimaryColor();
+      primaryColor = ColorUtils.setAlphaComponent(primaryColor, 128);
+
+      if(hasPhoto){
+        topPhoneContainer.setBackgroundColor(primaryColor);
+      } else {
+        topPhoneContainer.setBackgroundColor(Color.TRANSPARENT);
+      }
+    }
 
     if (primaryInfo.shouldShowLocation()) {
       // Hide the avatar to make room for location

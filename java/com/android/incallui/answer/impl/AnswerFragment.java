@@ -24,6 +24,8 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -37,6 +39,8 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
+import android.support.v4.graphics.ColorUtils;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.transition.TransitionManager;
 import android.view.LayoutInflater;
@@ -59,6 +63,7 @@ import com.android.dialer.logging.Logger;
 import com.android.dialer.multimedia.MultimediaData;
 import com.android.dialer.telecom.TelecomUtil;
 import com.android.dialer.util.ViewUtil;
+import com.android.incallui.InCallPresenter;
 import com.android.incallui.answer.impl.CreateCustomSmsDialogFragment.CreateCustomSmsHolder;
 import com.android.incallui.answer.impl.SmsBottomSheetFragment.SmsSheetHolder;
 import com.android.incallui.answer.impl.affordance.SwipeButtonHelper.Callback;
@@ -159,6 +164,8 @@ public class AnswerFragment extends Fragment
   private ContactGridManager contactGridManager;
   private VideoCallScreen answerVideoCallScreen;
   private Handler handler = new Handler(Looper.getMainLooper());
+  private boolean isFullscreenPhoto = false;
+  private View topPhoneContainer;
 
   private enum SecondaryBehavior {
     REJECT_WITH_SMS(
@@ -523,6 +530,18 @@ public class AnswerFragment extends Fragment
       return;
     }
     contactGridManager.setPrimary(primaryInfo);
+    if(topPhoneContainer != null){
+      boolean hasPhoto = primaryInfo.photo() != null &&
+              primaryInfo.photoType() == ContactPhotoType.CONTACT;
+      int primaryColor = InCallPresenter.getInstance().getThemeColorManager().getPrimaryColor();
+      primaryColor = ColorUtils.setAlphaComponent(primaryColor, 128);
+
+      if(hasPhoto){
+        topPhoneContainer.setBackgroundColor(primaryColor);
+      } else {
+        topPhoneContainer.setBackgroundColor(Color.TRANSPARENT);
+      }
+    }
     getAnswerMethod().setShowIncomingWillDisconnect(primaryInfo.answeringDisconnectsOngoingCall());
     getAnswerMethod()
         .setContactPhoto(
@@ -674,7 +693,18 @@ public class AnswerFragment extends Fragment
     buttonAcceptClicked = false;
     buttonRejectClicked = false;
 
-    View view = inflater.inflate(R.layout.fragment_incoming_call, container, false);
+    SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+    isFullscreenPhoto = mPrefs.getBoolean("fullscreen_caller_photo", false);
+
+    int res = R.layout.fragment_incoming_call;
+    if (isFullscreenPhoto) {
+        res = R.layout.fragment_incoming_call_fullscreen_photo;
+    }
+
+    View view = inflater.inflate(res, container, false);
+    if (isFullscreenPhoto) {
+        topPhoneContainer = view.findViewById(R.id.incall_contactgrid_container);
+    }
     secondaryButton = (SwipeButtonView) view.findViewById(R.id.incoming_secondary_button);
     answerAndReleaseButton = (SwipeButtonView) view.findViewById(R.id.incoming_secondary_button2);
 
@@ -1100,7 +1130,14 @@ public class AnswerFragment extends Fragment
     @Override
     public View onCreateView(
         LayoutInflater layoutInflater, @Nullable ViewGroup viewGroup, @Nullable Bundle bundle) {
-      return layoutInflater.inflate(R.layout.fragment_avatar, viewGroup, false);
+      SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+      boolean isFullscreenPhoto = mPrefs.getBoolean("fullscreen_caller_photo", false);
+
+      int res = R.layout.fragment_avatar;
+      if (isFullscreenPhoto) {
+          res = R.layout.fragment_avatar_fullscreen_photo;
+      }
+      return layoutInflater.inflate(res, viewGroup, false);
     }
 
     @Override
