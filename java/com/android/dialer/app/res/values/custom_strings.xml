@@ -20,4 +20,8 @@
   <string name="disable_proximity_sensor_summary">Do not turn off touchscreen and display in call based on proximity sensor</string>
   <string name="sensor_settings_titile">Sensors</string>
   <string name="more_settings_titile">More options</string>
+
+  <string name="fullscreen_caller_photo_title">Fullscreen photo</string>
+  <string name="fullscreen_caller_photo_summary">Display full-screen photo in incoming and outgoing calls</string>
+  <string name="fullscreen_caller_photo_message">To use, you must restart the application</string>
 </resources>
