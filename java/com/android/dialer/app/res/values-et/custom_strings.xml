@@ -24,4 +24,9 @@
   <string name="sound_prefs_sensors_title">Andurid</string>
   <string name="sound_prefs_vibrator_title">Vibraator</string>
   <string name="sound_prefs_audio_title">Heli</string>
+  <string name="incall_vibrate_outgoing_title">Vibreeri vastamisel</string>
+  <string name="incall_vibrate_call_waiting_title">Vibreeri kõne ootel</string>
+  <string name="incall_vibrate_hangup_title">Vibreeri kõne lõpetamisel</string>
+  <string name="incall_vibrate_45_title">Vibreeri iga minut</string>
+  <string name="incall_vibrate_45_summary">Vibreerib iga 45 sekundi järel väljaminevate kõnede ajal</string>
 </resources>

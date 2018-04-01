@@ -24,4 +24,9 @@
   <string name="sound_prefs_sensors_title">Capteurs</string>
   <string name="sound_prefs_vibrator_title">Vibreur</string>
   <string name="sound_prefs_audio_title">Audio</string>
+  <string name="incall_vibrate_outgoing_title">Vibrer en cas de réponse</string>
+  <string name="incall_vibrate_call_waiting_title">Vibrer en cas d\'appel en attente</string>
+  <string name="incall_vibrate_hangup_title">Vibrer à la fin de l\'appel</string>
+  <string name="incall_vibrate_45_title">Vibration à chaque minute</string>
+  <string name="incall_vibrate_45_summary">Vibrer à la quarante-cinquième seconde de chaque minute lors des appels sortants</string>
 </resources>

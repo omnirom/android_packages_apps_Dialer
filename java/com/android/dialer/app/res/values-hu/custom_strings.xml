@@ -24,4 +24,9 @@
   <string name="sound_prefs_sensors_title">Szenzorok</string>
   <string name="sound_prefs_vibrator_title">Rezgés</string>
   <string name="sound_prefs_audio_title">Audió</string>
+  <string name="incall_vibrate_outgoing_title">Rezgés válaszkor</string>
+  <string name="incall_vibrate_call_waiting_title">Rezgés hívásvárakoztatáskor</string>
+  <string name="incall_vibrate_hangup_title">Bontáskor rezeg</string>
+  <string name="incall_vibrate_45_title">Rezgés percenként</string>
+  <string name="incall_vibrate_45_summary">Minden 45. másodpercben rezeg a kimenő hívások során</string>
 </resources>

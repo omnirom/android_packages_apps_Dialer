@@ -17,6 +17,16 @@
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- New title for sound settings. Old entry (sounds_and_vibration_title) is keept for compatibility purposes -->
+  <string name="sounds_sensors_and_vibration_title">Sonido, vibración y sensores</string>
   <!-- Title of settings to disable proximity sensor in the app -->
+  <string name="disable_proximity_sensor_title">Desactivar el sensor de proximidad</string>
   <!-- Setting categories -->
+  <string name="sound_prefs_sensors_title">Sensores</string>
+  <string name="sound_prefs_vibrator_title">Vibración</string>
+  <string name="sound_prefs_audio_title">Sonido</string>
+  <string name="incall_vibrate_outgoing_title">Vibrar al contestar</string>
+  <string name="incall_vibrate_call_waiting_title">Vibrar en llamada de espera</string>
+  <string name="incall_vibrate_hangup_title">Vibrar al colgar</string>
+  <string name="incall_vibrate_45_title">Vibrar cada minuto</string>
+  <string name="incall_vibrate_45_summary">Vibrar en el segundo 45 de cada minuto durante una llamada saliente</string>
 </resources>

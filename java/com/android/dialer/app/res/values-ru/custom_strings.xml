@@ -24,4 +24,9 @@
   <string name="sound_prefs_sensors_title">Датчики</string>
   <string name="sound_prefs_vibrator_title">Вибрация</string>
   <string name="sound_prefs_audio_title">Звук</string>
+  <string name="incall_vibrate_outgoing_title">Вибрировать при ответе</string>
+  <string name="incall_vibrate_call_waiting_title">Вибрировать при ожидании</string>
+  <string name="incall_vibrate_hangup_title">Вибрировать при отбое</string>
+  <string name="incall_vibrate_45_title">Вибрировать каждую минуту</string>
+  <string name="incall_vibrate_45_summary">Вибрировать на 45-ую секунду каждой минуты во время исходящего вызова</string>
 </resources>

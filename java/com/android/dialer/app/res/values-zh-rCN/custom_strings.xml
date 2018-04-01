@@ -24,4 +24,9 @@
   <string name="sound_prefs_sensors_title">感应器</string>
   <string name="sound_prefs_vibrator_title">振动器</string>
   <string name="sound_prefs_audio_title">声音</string>
+  <string name="incall_vibrate_outgoing_title">接听时震动</string>
+  <string name="incall_vibrate_call_waiting_title">呼叫等待时震动</string>
+  <string name="incall_vibrate_hangup_title">通话结束时震动</string>
+  <string name="incall_vibrate_45_title">每分钟震动</string>
+  <string name="incall_vibrate_45_summary">呼出通话到达每分钟的 45 秒时震动</string>
 </resources>

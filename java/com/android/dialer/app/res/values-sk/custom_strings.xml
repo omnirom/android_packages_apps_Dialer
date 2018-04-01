@@ -24,4 +24,9 @@
   <string name="sound_prefs_sensors_title">Senzory</string>
   <string name="sound_prefs_vibrator_title">Vibrovanie</string>
   <string name="sound_prefs_audio_title">Zvuk</string>
+  <string name="incall_vibrate_outgoing_title">Vibrovať pri odpovedi</string>
+  <string name="incall_vibrate_call_waiting_title">Vibrovať pri čakajúcom hovore</string>
+  <string name="incall_vibrate_hangup_title">Vibrovať pri ukončení hovoru</string>
+  <string name="incall_vibrate_45_title">Vibrovať každú minútu</string>
+  <string name="incall_vibrate_45_summary">Vibrovanie po uplynutí 45 sekúnd každej minúty počas odchádzajúceho hovoru</string>
 </resources>

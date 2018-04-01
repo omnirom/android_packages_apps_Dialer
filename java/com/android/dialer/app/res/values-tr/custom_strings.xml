@@ -24,4 +24,9 @@
   <string name="sound_prefs_sensors_title">Sensörler</string>
   <string name="sound_prefs_vibrator_title">Titreşim motoru</string>
   <string name="sound_prefs_audio_title">Ses</string>
+  <string name="incall_vibrate_outgoing_title">Cevaplandığında titre</string>
+  <string name="incall_vibrate_call_waiting_title">Arama bekletildiğinde titre</string>
+  <string name="incall_vibrate_hangup_title">Kapatıldığında titre</string>
+  <string name="incall_vibrate_45_title">Her geçen dakika titre</string>
+  <string name="incall_vibrate_45_summary">Giden arama esnâsında her dakikanın kırk beşinci saniyesinde titrer</string>
 </resources>
