@@ -24,4 +24,6 @@
   <string name="sound_prefs_sensors_title">Sensori</string>
   <string name="sound_prefs_vibrator_title">Vibrazione</string>
   <string name="sound_prefs_audio_title">Audio</string>
+  <string name="incall_vibrate_outgoing_title">Vibra alla risposta</string>
+  <string name="incall_vibrate_45_title">Vibra ogni minuto</string>
 </resources>
