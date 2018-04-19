@@ -462,7 +462,7 @@
 
   <!-- Hint displayed in dialer search box when there is no query that is currently typed.
        [CHAR LIMIT=30] -->
-  <string name="dialer_hint_find_contact">Search contacts</string>
+  <string name="dialer_hint_find_contact">Search people &amp; places</string>
 
   <!-- Hint displayed in add blocked number search box when there is no query typed.
        [CHAR LIMIT=45] -->
