@@ -24,4 +24,9 @@
   <string name="sound_prefs_sensors_title">Sensorit</string>
   <string name="sound_prefs_vibrator_title">Värinä</string>
   <string name="sound_prefs_audio_title">Ääni</string>
+  <string name="incall_vibrate_outgoing_title">Värise vastattaessa</string>
+  <string name="incall_vibrate_call_waiting_title">Värise koputtaessa</string>
+  <string name="incall_vibrate_hangup_title">Värise puhelun päättyessä</string>
+  <string name="incall_vibrate_45_title">Värise joka minuutti</string>
+  <string name="incall_vibrate_45_summary">Värisee jokaisella minuuttilla 45 sekunnin kohdalla lähtevän puhelun aikana</string>
 </resources>
