@@ -30,6 +30,7 @@ import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import com.android.contacts.common.compat.TelephonyManagerCompat;
 import com.android.contacts.common.list.ViewPagerTabs;
@@ -230,6 +231,8 @@ public class CallLogActivity extends TransactionSafeActivity
 
     mViewPagerTabs.setViewPager(mViewPager);
     mViewPager.setCurrentItem(startingTab);
+
+    mViewPagerTabs.setVisibility(View.GONE);
   }
 
   @Override
