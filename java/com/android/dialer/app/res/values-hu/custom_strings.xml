@@ -29,4 +29,11 @@
   <string name="incall_vibrate_hangup_title">Bontáskor rezeg</string>
   <string name="incall_vibrate_45_title">Rezgés percenként</string>
   <string name="incall_vibrate_45_summary">Minden 45. másodpercben rezeg a kimenő hívások során</string>
+  <string name="type_incoming_volte">Bejövő 4G hanghívás</string>
+  <string name="type_outgoing_volte">Kimenő 4G hanghívás</string>
+  <string name="type_missed_volte">Nem fogadott 4G hanghívás</string>
+  <string name="recentIncoming_empty">Nincsenek bejövő hívások.</string>
+  <string name="recentOutgoing_empty">Nincsenek kimenő hívások.</string>
+  <string name="call_log_show_all_slots">Az összes SIM</string>
+  <string name="call_log_all_calls_header">Az összes hívás</string>
 </resources>

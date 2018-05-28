@@ -29,4 +29,11 @@
   <string name="incall_vibrate_hangup_title">Vibrovat při zavěšení</string>
   <string name="incall_vibrate_45_title">Vibrovat každou minutu</string>
   <string name="incall_vibrate_45_summary">Vibrovat za 45 sekund po každé započaté minutě odchozího hovoru</string>
+  <string name="type_incoming_volte">Příchozí hlasový hovor 4G</string>
+  <string name="type_outgoing_volte">Odchozí hlasový hovor 4G</string>
+  <string name="type_missed_volte">Zmeškaný hlasový hovor 4G</string>
+  <string name="recentIncoming_empty">Nemáte žádné příchozí hovory.</string>
+  <string name="recentOutgoing_empty">Nemáte žádné odchozí hovory.</string>
+  <string name="call_log_show_all_slots">Všechny SIM</string>
+  <string name="call_log_all_calls_header">Všechny hovory</string>
 </resources>

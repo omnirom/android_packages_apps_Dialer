@@ -29,4 +29,11 @@
   <string name="incall_vibrate_hangup_title">Kapatıldığında titre</string>
   <string name="incall_vibrate_45_title">Her geçen dakika titre</string>
   <string name="incall_vibrate_45_summary">Giden arama esnâsında her dakikanın kırk beşinci saniyesinde titrer</string>
+  <string name="type_incoming_volte">4G ile gelen sesli telefon araması</string>
+  <string name="type_outgoing_volte">4G ile giden sesli telefon araması</string>
+  <string name="type_missed_volte">Cevapsız olan 4G sesli telefon araması</string>
+  <string name="recentIncoming_empty">Gelen bir telefon aramanız yok.</string>
+  <string name="recentOutgoing_empty">Giden bir telefon aramanız yok.</string>
+  <string name="call_log_show_all_slots">Bütün SIM\'ler</string>
+  <string name="call_log_all_calls_header">Bütün aramalar</string>
 </resources>
