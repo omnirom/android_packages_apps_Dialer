@@ -29,4 +29,6 @@
   <string name="incall_vibrate_hangup_title">Вибрировать при отбое</string>
   <string name="incall_vibrate_45_title">Вибрировать каждую минуту</string>
   <string name="incall_vibrate_45_summary">Вибрировать на 45-ую секунду каждой минуты во время исходящего вызова</string>
+  <string name="call_log_show_all_slots">Все SIM-карты</string>
+  <string name="call_log_all_calls_header">Все звонки</string>
 </resources>

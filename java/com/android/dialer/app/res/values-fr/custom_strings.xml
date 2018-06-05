@@ -29,4 +29,11 @@
   <string name="incall_vibrate_hangup_title">Vibrer à la fin de l\'appel</string>
   <string name="incall_vibrate_45_title">Vibration à chaque minute</string>
   <string name="incall_vibrate_45_summary">Vibrer à la quarante-cinquième seconde de chaque minute lors des appels sortants</string>
+  <string name="type_incoming_volte">Appel vocal 4G entrant</string>
+  <string name="type_outgoing_volte">Appel vocal 4G sortant</string>
+  <string name="type_missed_volte">Appel vocal 4G manqué</string>
+  <string name="recentIncoming_empty">Vous n\'avez aucun appel entrant.</string>
+  <string name="recentOutgoing_empty">Vous n\'avez aucun appel sortant.</string>
+  <string name="call_log_show_all_slots">Toutes les cartes SIM</string>
+  <string name="call_log_all_calls_header">Tous les appels</string>
 </resources>

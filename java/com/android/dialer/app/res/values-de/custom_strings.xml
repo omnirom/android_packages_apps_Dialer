@@ -29,4 +29,11 @@
   <string name="incall_vibrate_hangup_title">Beim Auflegen vibrieren</string>
   <string name="incall_vibrate_45_title">Jede Minute vibrieren</string>
   <string name="incall_vibrate_45_summary">Während ausgehender Anrufe 15 Sekunden vor dem Ende jeder vollen Minute vibrieren</string>
+  <string name="type_incoming_volte">Eingehender 4G Sprachanruf</string>
+  <string name="type_outgoing_volte">Ausgehender 4G Sprachanruf</string>
+  <string name="type_missed_volte">Verpasster 4G Sprachanruf</string>
+  <string name="recentIncoming_empty">Sie haben keine eingehenden Anrufe.</string>
+  <string name="recentOutgoing_empty">Sie haben keine ausgehende Anrufe.</string>
+  <string name="call_log_show_all_slots">Alle SIMs</string>
+  <string name="call_log_all_calls_header">Alle Anrufe</string>
 </resources>
