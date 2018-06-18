@@ -29,4 +29,7 @@
   <string name="incall_vibrate_hangup_title">Värise puhelun päättyessä</string>
   <string name="incall_vibrate_45_title">Värise joka minuutti</string>
   <string name="incall_vibrate_45_summary">Värisee jokaisella minuuttilla 45 sekunnin kohdalla lähtevän puhelun aikana</string>
+  <string name="recentIncoming_empty">Sinulla ei ole saapuvia puheluita.</string>
+  <string name="recentOutgoing_empty">Sinulla ei ole lähteviä puheluita.</string>
+  <string name="call_log_all_calls_header">Kaikki puhelut</string>
 </resources>

@@ -27,8 +27,8 @@
   <string name="incall_vibrate_outgoing_title">Cevaplandığında titre</string>
   <string name="incall_vibrate_call_waiting_title">Arama bekletildiğinde titre</string>
   <string name="incall_vibrate_hangup_title">Kapatıldığında titre</string>
-  <string name="incall_vibrate_45_title">Her geçen dakika titre</string>
-  <string name="incall_vibrate_45_summary">Giden arama esnâsında her dakikanın kırk beşinci saniyesinde titrer</string>
+  <string name="incall_vibrate_45_title">Her geçen dakîka titre</string>
+  <string name="incall_vibrate_45_summary">Giden arama esnâsında her dakîkanın kırk beşinci sâniyesinde titrer</string>
   <string name="type_incoming_volte">4G ile gelen sesli telefon araması</string>
   <string name="type_outgoing_volte">4G ile giden sesli telefon araması</string>
   <string name="type_missed_volte">Cevapsız olan 4G sesli telefon araması</string>

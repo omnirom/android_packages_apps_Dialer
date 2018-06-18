@@ -29,4 +29,11 @@
   <string name="incall_vibrate_hangup_title">Vibreeri kõne lõpetamisel</string>
   <string name="incall_vibrate_45_title">Vibreeri iga minut</string>
   <string name="incall_vibrate_45_summary">Vibreerib iga 45 sekundi järel väljaminevate kõnede ajal</string>
+  <string name="type_incoming_volte">Sissetulev 4G häälkõne</string>
+  <string name="type_outgoing_volte">Väljuv 4G häälkõne</string>
+  <string name="type_missed_volte">Vastamata 4G häälkõne</string>
+  <string name="recentIncoming_empty">Sul pole sissetulevaid kõnesid.</string>
+  <string name="recentOutgoing_empty">Sul pole väljuvaid kõnesid.</string>
+  <string name="call_log_show_all_slots">Kõik SIMid</string>
+  <string name="call_log_all_calls_header">Kõik kõned</string>
 </resources>
