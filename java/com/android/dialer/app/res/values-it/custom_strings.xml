@@ -25,5 +25,15 @@
   <string name="sound_prefs_vibrator_title">Vibrazione</string>
   <string name="sound_prefs_audio_title">Audio</string>
   <string name="incall_vibrate_outgoing_title">Vibra alla risposta</string>
+  <string name="incall_vibrate_call_waiting_title">Vibra con chiamata in attesa</string>
+  <string name="incall_vibrate_hangup_title">Vibra al riaggancio</string>
   <string name="incall_vibrate_45_title">Vibra ogni minuto</string>
+  <string name="incall_vibrate_45_summary">Vibrate ogni 45 secondi ogni minuto durante le chiamate in uscita</string>
+  <string name="type_incoming_volte">Chiamata vocale 4G in ingresso</string>
+  <string name="type_outgoing_volte">Chiamata vocale 4G in uscita</string>
+  <string name="type_missed_volte">Chiamata vocale 4G persa</string>
+  <string name="recentIncoming_empty">Non hai chiamate in arrivo.</string>
+  <string name="recentOutgoing_empty">Non hai chiamate in uscita.</string>
+  <string name="call_log_show_all_slots">Tutte le SIM</string>
+  <string name="call_log_all_calls_header">Tutte le chiamate</string>
 </resources>

@@ -17,6 +17,23 @@
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- New title for sound settings. Old entry (sounds_and_vibration_title) is keept for compatibility purposes -->
+  <string name="sounds_sensors_and_vibration_title">音、センサー、振動</string>
   <!-- Title of settings to disable proximity sensor in the app -->
+  <string name="disable_proximity_sensor_title">近接センサーを無効にする</string>
   <!-- Setting categories -->
+  <string name="sound_prefs_sensors_title">センサー</string>
+  <string name="sound_prefs_vibrator_title">バイブレーション</string>
+  <string name="sound_prefs_audio_title">音声</string>
+  <string name="incall_vibrate_outgoing_title">応答時のバイブレーション</string>
+  <string name="incall_vibrate_call_waiting_title">割込通話時のバイブレーション</string>
+  <string name="incall_vibrate_hangup_title">通話終了時のバイブレーション</string>
+  <string name="incall_vibrate_45_title">1分ごとのバイブレーション</string>
+  <string name="incall_vibrate_45_summary">発信中に45秒ごとに振動する</string>
+  <string name="type_incoming_volte">4G音声通話の着信</string>
+  <string name="type_outgoing_volte">4G音声通話の発信</string>
+  <string name="type_missed_volte">不在4G音声通話</string>
+  <string name="recentIncoming_empty">着信通話はありません</string>
+  <string name="recentOutgoing_empty">発信通話はありません</string>
+  <string name="call_log_show_all_slots">すべてのSIM</string>
+  <string name="call_log_all_calls_header">すべての通話</string>
 </resources>
