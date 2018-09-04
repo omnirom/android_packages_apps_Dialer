@@ -75,6 +75,11 @@
     <item name="list_item_video_call_icon_margin">8dip</item>
 
     <item name="dialpad_style">@style/Dialpad.Light</item>
+    <item name="android:popupMenuStyle">@style/PopupMenu</item>
+  </style>
+
+  <style name="PopupMenu" parent="ThemeOverlay.AppCompat.Dark">
+      <item name="android:popupBackground">@color/popupBackground</item>
   </style>
 
   <style name="DialtactsTheme" parent="DialtactsThemeBase">
@@ -143,7 +148,10 @@
     <item name="contentInsetEnd">0dp</item>
   </style>
 
-  <style name="DialtactsSearchBarThemeOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+  <style name="DialtactsSearchBarThemeOverlay" parent="ThemeOverlay.AppCompat.Light">
+    <item name="android:background">@color/searchbox_background_color</item>
+    <!--<item name="background">@color/actionbar_background_color</item> -->
+  </style>
 
   <!-- Text in the action bar at the top of the screen -->
   <style name="DialtactsActionBarTitleText"
@@ -162,7 +170,7 @@
   <style name="CallLogActionStyle">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">@dimen/call_log_action_height</item>
-    <item name="android:background">?android:attr/selectableItemBackground</item>
+    <item name="android:background">@color/actionbar_background_color</item>
     <item name="android:orientation">horizontal</item>
     <item name="android:gravity">center_vertical</item>
   </style>
