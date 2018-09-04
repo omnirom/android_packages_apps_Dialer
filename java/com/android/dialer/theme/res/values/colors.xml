@@ -73,4 +73,10 @@
 
   <!-- Color for bubble -->
   <color name="dialer_end_call_button_color">#BD2A2A</color>
+
+  <!-- PoorManThemes -->
+  <color name="omni_subheader">#212121</color>
+  <color name="omni_secondary_text">#8A000000</color>
+  <color name="omni_primary_text">#DE000000</color>
+  <color name="popupBackground">#ffffff</color>
 </resources>

@@ -48,6 +48,12 @@
     <!-- TODO(calderwoodra): Check to see if we can remove this after NewVoicemailFragment launches -->
     <item name="actionModeStyle">@style/ActionModeStyle</item>
     <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+
+    <item name="android:popupMenuStyle">@style/PopupMenu</item>
+  </style>
+
+  <style name="PopupMenu" parent="ThemeOverlay.AppCompat.Dark">
+      <item name="android:popupBackground">@color/popupBackground</item>
   </style>
 
   <!-- Colors our actionbar in action mode to dialer theme color. -->

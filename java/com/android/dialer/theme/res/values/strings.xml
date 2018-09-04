@@ -32,4 +32,6 @@
 
   <!-- Label shown on the 'positive' button for the dialog. Indicates that the call will proceed -->
   <string name="call">Call</string>
+
+  <string name="omni_true">true</string>
 </resources>
