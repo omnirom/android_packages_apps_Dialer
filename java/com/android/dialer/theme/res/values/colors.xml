@@ -78,5 +78,6 @@
   <color name="omni_subheader">#212121</color>
   <color name="omni_secondary_text">#8A000000</color>
   <color name="omni_primary_text">#DE000000</color>
-  <color name="popupBackground">#ffffff</color>
+  <color name="popup_background_color">#ffffff</color>
+  <color name="popup_header_color">@color/dialtacts_theme_color</color>
 </resources>

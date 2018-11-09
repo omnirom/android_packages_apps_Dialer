@@ -76,10 +76,16 @@
 
     <item name="dialpad_style">@style/Dialpad.Light</item>
     <item name="android:popupMenuStyle">@style/PopupMenu</item>
+    <item name="android:contextPopupMenuStyle">@style/PopupMenu</item>
+    <item name="android:textAppearancePopupMenuHeader">@style/PopupMenuHeader</item>
   </style>
 
   <style name="PopupMenu" parent="ThemeOverlay.AppCompat.Dark">
-      <item name="android:popupBackground">@color/popupBackground</item>
+      <item name="android:popupBackground">@color/popup_background_color</item>
+  </style>
+
+  <style name="PopupMenuHeader" parent="@*android:style/TextAppearance.Material.Widget.PopupMenu.Header">
+    <item name="android:textColor">@color/popup_header_color</item>
   </style>
 
   <style name="DialtactsTheme" parent="DialtactsThemeBase">
