@@ -101,12 +101,19 @@
     <item name="android:textColorPrimary">#FFFFFF</item>
   </style>
 
+  <style name="ActionModeOverflowMenu" parent="Widget.AppCompat.ListPopupWindow">
+    <item name="android:textColor">@color/dialer_primary_text_color</item>
+    <item name="android:background">@color/popup_background_color</item>
+ </style>
+
   <style name="DialtactsThemeWithoutActionBarOverlay" parent="DialtactsTheme">
     <!-- Styles that require AppCompat compatibility, remember to update both sets -->
     <item name="android:windowActionBarOverlay">false</item>
     <item name="windowActionBarOverlay">false</item>
     <item name="android:actionOverflowButtonStyle">@style/DialtactsActionBarOverflowWhite</item>
     <item name="actionOverflowButtonStyle">@style/DialtactsActionBarOverflowWhite</item>
+    <item name="actionBarPopupTheme">@style/ActionModeOverflowMenu</item>
+    <item name="android:actionBarPopupTheme">@style/ActionModeOverflowMenu</item>
   </style>
 
   <!-- Hide the actionbar title during the activity preview -->

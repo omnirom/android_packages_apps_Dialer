@@ -80,4 +80,6 @@
   <color name="omni_primary_text">#DE000000</color>
   <color name="popup_background_color">#ffffff</color>
   <color name="popup_header_color">@color/dialtacts_theme_color</color>
+  <!-- must stay white! -->
+  <color name="dialer_toolbar_text_color">#ffffff</color>
 </resources>
