@@ -207,7 +207,7 @@ public class BlockNumberDialogFragment extends DialogFragment {
   }
 
   private int getActionTextColor() {
-    return getContext().getResources().getColor(R.color.dialer_snackbar_action_text_color);
+    return getContext().getResources().getColor(R.color.dialer_snackbar_text_color);
   }
 
   private void blockNumber() {

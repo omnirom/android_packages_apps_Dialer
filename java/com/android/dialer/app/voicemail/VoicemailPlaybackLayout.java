@@ -123,7 +123,7 @@ public class VoicemailPlaybackLayout extends LinearLayout
                     }
                   })
               .setActionTextColor(
-                  context.getResources().getColor(R.color.dialer_snackbar_action_text_color))
+                  context.getResources().getColor(R.color.dialer_snackbar_text_color))
               .show();
         }
       };
