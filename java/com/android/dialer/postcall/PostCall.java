@@ -101,7 +101,7 @@ public class PostCall {
         Snackbar.make(rootView, message, durationMs)
             .setAction(actionText, onClickListener)
             .setActionTextColor(
-                activity.getResources().getColor(R.color.dialer_snackbar_action_text_color));
+                activity.getResources().getColor(R.color.dialer_snackbar_text_color));
     activeSnackbar.show();
     Logger.get(activity).logImpression(DialerImpression.Type.POST_CALL_PROMPT_USER_TO_SEND_MESSAGE);
     StorageComponent.get(activity)
@@ -131,7 +131,7 @@ public class PostCall {
         Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
             .setAction(addMessage, onClickListener)
             .setActionTextColor(
-                activity.getResources().getColor(R.color.dialer_snackbar_action_text_color))
+                activity.getResources().getColor(R.color.dialer_snackbar_text_color))
             .addCallback(
                 new BaseCallback<Snackbar>() {
                   @Override

@@ -288,7 +288,7 @@ public class CallLogActivity extends TransactionSafeActivity
             .setAction(
                 R.string.view_conversation,
                 v -> startActivity(IntentProvider.getSendSmsIntentProvider(number).getIntent(this)))
-            .setActionTextColor(getResources().getColor(R.color.dialer_snackbar_action_text_color))
+            .setActionTextColor(getResources().getColor(R.color.dialer_snackbar_text_color))
             .show();
       }
     }
