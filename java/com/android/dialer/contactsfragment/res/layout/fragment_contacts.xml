@@ -33,8 +33,6 @@
       android:id="@+id/fast_scroller"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:layout_marginTop="8dp"
-      android:layout_marginBottom="8dp"
       android:clipChildren="false"
       android:visibility="gone">
 
@@ -45,7 +43,7 @@
         android:layout_toLeftOf="@+id/fast_scroller_scroll_bar"
         android:gravity="center"
         android:textSize="48sp"
-        android:textColor="@color/background_dialer_white"
+        android:textColor="@android:color/white"
         android:visibility="gone"
         android:background="@drawable/fast_scroller_container_background"/>
 
@@ -55,7 +53,6 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_alignParentRight="true"
-        android:paddingRight="16dp"
         android:src="@drawable/fast_scroller_scroll_bar" />
   </com.android.dialer.contactsfragment.FastScroller>
 
