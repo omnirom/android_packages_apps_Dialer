@@ -15,6 +15,7 @@
  */
 package com.android.dialer.app.settings;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -185,6 +186,13 @@ public class DialerSettingsActivity extends AppCompatPreferenceActivity {
       target.add(assistedDialingSettingsHeader);
     }
 
+    if (showMoreOptions()) {
+      Header moreSettingsHeader = new Header();
+      moreSettingsHeader.titleRes = R.string.more_settings_titile;
+      moreSettingsHeader.id = R.id.settings_header_more;
+      target.add(moreSettingsHeader);
+    }
+
     if (showAbout()) {
       Header aboutPhoneHeader = new Header();
       aboutPhoneHeader.titleRes = R.string.about_phone_label;
@@ -306,7 +314,10 @@ public class DialerSettingsActivity extends AppCompatPreferenceActivity {
       startActivity(new Intent(Settings.ACTION_SOUND_SETTINGS));
       return;
     }
-
+    if (header.id == R.id.settings_header_more) {
+      startActivity(getMoreOptionsIntent());
+      return;
+    }
     super.onHeaderClick(header, position);
   }
 
@@ -340,5 +351,17 @@ public class DialerSettingsActivity extends AppCompatPreferenceActivity {
   private boolean showSensorOptions() {
     SensorManager sm = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
     return sm.getDefaultSensor(TYPE_PROXIMITY) != null;
+  }
+
+  private Intent getMoreOptionsIntent() {
+    ComponentName cm = new ComponentName("com.android.settings", "com.android.settings.Settings$DialerSettingsActivity");
+    Intent intent = new Intent();
+    intent.setComponent(cm);
+    return intent;
+  }
+
+  private boolean showMoreOptions() {
+    Intent intent = getMoreOptionsIntent();
+    return intent.resolveActivity(getPackageManager()) != null;
   }
 }
