@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.DisplayManager.DisplayListener;
 import android.os.PowerManager;
+import android.os.SystemProperties;
 import android.os.Trace;
 import android.support.annotation.NonNull;
 import android.telecom.CallAudioState;
@@ -60,6 +61,7 @@ public class ProximitySensor
   private boolean isVideoCall;
   private boolean isRttCall;
   private SharedPreferences mPrefs;
+  private boolean mUltrasoundProximity = SystemProperties.getBoolean("ro.vendor.audio.us.proximity", false);
 
   public ProximitySensor(
       @NonNull Context context,
@@ -201,7 +203,8 @@ public class ProximitySensor
     if (proximityWakeLock != null) {
       if (proximityWakeLock.isHeld()) {
         LogUtil.i("ProximitySensor.turnOffProximitySensor", "releasing wake lock");
-        int flags = (screenOnImmediately ? 0 : PowerManager.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY);
+        int flags = ((screenOnImmediately || mUltrasoundProximity) ?
+                0 : PowerManager.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY);
         proximityWakeLock.release(flags);
       } else {
         LogUtil.i("ProximitySensor.turnOffProximitySensor", "wake lock already released");
