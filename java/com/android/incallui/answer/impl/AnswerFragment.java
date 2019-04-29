@@ -166,6 +166,7 @@ public class AnswerFragment extends Fragment
   private Handler handler = new Handler(Looper.getMainLooper());
   private boolean isFullscreenPhoto = false;
   private View topPhoneContainer;
+  private boolean hasPhoto;
 
   private enum SecondaryBehavior {
     REJECT_WITH_SMS(
@@ -531,7 +532,7 @@ public class AnswerFragment extends Fragment
     }
     contactGridManager.setPrimary(primaryInfo);
     if(topPhoneContainer != null){
-      boolean hasPhoto = primaryInfo.photo() != null &&
+      hasPhoto = primaryInfo.photo() != null &&
               primaryInfo.photoType() == ContactPhotoType.CONTACT;
       int primaryColor = InCallPresenter.getInstance().getThemeColorManager().getPrimaryColor();
       primaryColor = ColorUtils.setAlphaComponent(primaryColor, 128);
@@ -697,7 +698,7 @@ public class AnswerFragment extends Fragment
     isFullscreenPhoto = mPrefs.getBoolean("fullscreen_caller_photo", false);
 
     int res = R.layout.fragment_incoming_call;
-    if (isFullscreenPhoto) {
+    if (isFullscreenPhoto && hasPhoto) {
         res = R.layout.fragment_incoming_call_fullscreen_photo;
     }
 
