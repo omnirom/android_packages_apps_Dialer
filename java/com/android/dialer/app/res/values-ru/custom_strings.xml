@@ -17,4 +17,6 @@
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="disable_proximity_sensor_title">Отключить датчик приближения</string>
+  <string name="disable_proximity_sensor_summary">Не отключать дисплей и экран вызова на основе датчика приближения</string>
+  <string name="sensor_settings_titile">Датчики</string>
 </resources>

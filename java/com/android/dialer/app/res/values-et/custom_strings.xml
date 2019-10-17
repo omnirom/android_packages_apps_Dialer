@@ -17,4 +17,6 @@
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="disable_proximity_sensor_title">Keela lähedusandur</string>
+  <string name="disable_proximity_sensor_summary">Ära lülita puuteekraani kõne ajal lähedusanduri põhjal välja</string>
+  <string name="sensor_settings_titile">Andurid</string>
 </resources>
