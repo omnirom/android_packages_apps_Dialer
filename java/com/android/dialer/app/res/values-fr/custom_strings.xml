@@ -17,4 +17,6 @@
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="disable_proximity_sensor_title">Désactiver le capteur de proximité</string>
+  <string name="disable_proximity_sensor_summary">Ne pas éteindre l\'écran tactile et l\'écran pendant les appels en se basant sur le capteur de proximité</string>
+  <string name="sensor_settings_titile">Capteurs</string>
 </resources>
