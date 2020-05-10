@@ -59,26 +59,20 @@ public class ProximitySensor
   private boolean isAttemptingVideoCall;
   private boolean isVideoCall;
   private boolean isRttCall;
-  private SharedPreferences mPrefs;
+  private final Context mContext;
 
   public ProximitySensor(
       @NonNull Context context,
       @NonNull AudioModeProvider audioModeProvider,
       @NonNull AccelerometerListener accelerometerListener) {
     Trace.beginSection("ProximitySensor.Constructor");
-
-    mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-    final boolean mIsProximitySensorDisabled = mPrefs.getBoolean(PREF_KEY_DISABLE_PROXI_SENSOR, false);
-
+    mContext = context;
     powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-    if (powerManager.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)
-          && !mIsProximitySensorDisabled) {
+    if (powerManager.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)) {
       proximityWakeLock =
           powerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, TAG);
-    } else if (mIsProximitySensorDisabled) {
-      turnOffProximitySensor(true); // Ensure the wakelock is released before destroying it.
-      proximityWakeLock = null;
     } else {
+      LogUtil.i("ProximitySensor.constructor", "Device does not support proximity wake lock.");
       proximityWakeLock = null;
     }
     this.accelerometerListener = accelerometerListener;
@@ -228,10 +222,12 @@ public class ProximitySensor
     Trace.beginSection("ProximitySensor.updateProximitySensorMode");
     final int audioRoute = audioModeProvider.getAudioState().getRoute();
 
-    final boolean mIsProximitySensorDisabled = mPrefs.getBoolean(PREF_KEY_DISABLE_PROXI_SENSOR, false);
-
-    if (mIsProximitySensorDisabled) {
-        return;
+    boolean isProximitySensorDisabled = false;
+    try {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        isProximitySensorDisabled = prefs.getBoolean(PREF_KEY_DISABLE_PROXI_SENSOR, false);
+    } catch (Exception e) {
+        // when called befoire first unlock
     }
 
     boolean screenOnImmediately =
@@ -257,15 +253,17 @@ public class ProximitySensor
     LogUtil.i(
         "ProximitySensor.updateProximitySensorMode",
         "screenOnImmediately: %b, dialPadVisible: %b, "
-            + "offHook: %b, horizontal: %b, uiShowing: %b, audioRoute: %s",
+            + "offHook: %b, horizontal: %b, uiShowing: %b, audioRoute: %s, "
+            + "isProximitySensorDisabled: %b",
         screenOnImmediately,
         dialpadVisible,
         isPhoneOffhook,
         orientation == AccelerometerListener.ORIENTATION_HORIZONTAL,
         uiShowing,
-        CallAudioState.audioRouteToString(audioRoute));
+        CallAudioState.audioRouteToString(audioRoute),
+        isProximitySensorDisabled);
 
-    if (isPhoneOffhook && !screenOnImmediately) {
+    if (isPhoneOffhook && !screenOnImmediately && !isProximitySensorDisabled) {
       LogUtil.v("ProximitySensor.updateProximitySensorMode", "turning on proximity sensor");
       // Phone is in use!  Arrange for the screen to turn off
       // automatically when the sensor detects a close object.
