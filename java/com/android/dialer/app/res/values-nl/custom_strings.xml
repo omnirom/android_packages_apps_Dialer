@@ -16,4 +16,5 @@
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="disable_proximity_sensor_title">Schakel nabijheidssensor uit</string>
+  <string name="sensor_settings_titile">Sensoren</string>
 </resources>
