@@ -16,4 +16,6 @@
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="disable_proximity_sensor_title">Disattiva il sensore di prossimità</string>
+  <string name="disable_proximity_sensor_summary">Non spegnere il touchscreen e visualizzare in chiamata in base al sensore di prossimità</string>
+  <string name="sensor_settings_titile">Sensori</string>
 </resources>
