@@ -24,10 +24,8 @@
     android:id="@+id/contact_tile_frame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_alignParentLeft="true"
-    android:layout_alignParentTop="true"
-    android:paddingStart="@dimen/favorites_row_start_padding"
-    android:paddingEnd="@dimen/favorites_row_end_padding">
+    android:layout_marginStart="@dimen/favorites_row_side_margin"
+    android:layout_marginEnd="@dimen/favorites_row_side_margin">
     <com.android.dialer.app.list.PhoneFavoriteListView
       android:id="@+id/contact_tile_list"
       android:layout_width="match_parent"
@@ -38,7 +36,9 @@
       android:divider="@null"
       android:fadingEdge="none"
       android:nestedScrollingEnabled="true"
-      android:numColumns="@integer/contact_tile_column_count_in_favorites"/>
+      android:numColumns="@integer/contact_tile_column_count_in_favorites"
+      android:horizontalSpacing="@dimen/contact_tile_divider_width"
+      android:verticalSpacing="@dimen/contact_tile_divider_width" />
   </FrameLayout>
 
   <com.android.dialer.widget.EmptyContentView
