@@ -21,6 +21,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.DragEvent;
@@ -244,6 +245,9 @@ public class PhoneFavoriteListView extends GridView
 
     dragShadowOverlay.setX(dragShadowLeft);
     dragShadowOverlay.setY(dragShadowTop);
+
+    dragShadowOverlay.setClipToOutline(true);
+    dragShadowOverlay.setOutlineProvider(tileView.getOutlineProvider());
   }
 
   @Override
@@ -276,22 +280,11 @@ public class PhoneFavoriteListView extends GridView
   public void onDroppedOnRemove() {}
 
   private Bitmap createDraggedChildBitmap(View view) {
-    view.setDrawingCacheEnabled(true);
-    final Bitmap cache = view.getDrawingCache();
-
-    Bitmap bitmap = null;
-    if (cache != null) {
-      try {
-        bitmap = cache.copy(Bitmap.Config.ARGB_8888, false);
-      } catch (final OutOfMemoryError e) {
-        LogUtil.w(LOG_TAG, "Failed to copy bitmap from Drawing cache", e);
-        bitmap = null;
-      }
-    }
-
-    view.destroyDrawingCache();
-    view.setDrawingCacheEnabled(false);
-
+    Bitmap bitmap = Bitmap.createBitmap(
+        view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888
+    );
+    Canvas canvas = new Canvas(bitmap);
+    view.draw(canvas);
     return bitmap;
   }
 
