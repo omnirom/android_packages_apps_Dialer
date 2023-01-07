@@ -43,7 +43,7 @@
         android:layout_gravity="top"
         android:elevation="@dimen/tab_elevation"
         android:orientation="horizontal"
-        android:textAllCaps="true"/>
+        android:textAllCaps="false"/>
 
     <com.android.dialer.app.list.DialerViewPager
         android:id="@+id/lists_pager"

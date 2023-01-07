@@ -24,5 +24,7 @@
   <!--  Colors for blocked numbers list -->
   <color name="blocked_number_block_color">#F44336</color>
 
-  <color name="ic_launcher_background">@color/dialer_theme_color</color>
+  <color name="ic_launcher_background_color">@color/dialer_theme_color</color>
+  <color name="ic_launcher_background">@color/ic_launcher_background_color</color>
+
 </resources>

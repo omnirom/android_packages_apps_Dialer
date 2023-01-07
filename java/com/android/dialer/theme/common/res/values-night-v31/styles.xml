@@ -15,9 +15,17 @@
   ~ limitations under the License
   -->
 <resources>
-  <dimen name="search_bar_margin">16dp</dimen>
-  <dimen name="collapsed_search_bar_height">48dp</dimen>
-  <!-- collapsed + margin * 2 -->
-  <dimen name="expanded_search_bar_height">80dp</dimen>
-  <dimen name="search_bar_corner_radius">24dp</dimen>
+  <!-- TODO(calderwoodra): Delete this once new call log and new voicemail ship. -->
+  <!-- Ideally we would make a callLogCardStyle attribute but we don't want to expand dialer/app -->
+  <style name="CallLogCardStyle" parent="CardView">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_margin">4dp</item>
+    <item name="android:baselineAligned">false</item>
+    <item name="cardCornerRadius">8dp</item>
+    <item name="cardBackgroundColor">?android:attr/colorBackgroundFloating</item>
+    <item name="contentPadding">6dp</item>
+    <item name="cardElevation">0dp</item>
+  </style>
+
 </resources>

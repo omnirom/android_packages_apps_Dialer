@@ -49,7 +49,7 @@ public class ViewPagerTabStrip extends LinearLayout {
     mSelectedUnderlinePaint = new Paint();
     mSelectedUnderlinePaint.setColor(underlineColor);
 
-    setBackgroundColor(backgroundColor);
+    //setBackgroundColor(backgroundColor);
     setWillNotDraw(false);
   }
 

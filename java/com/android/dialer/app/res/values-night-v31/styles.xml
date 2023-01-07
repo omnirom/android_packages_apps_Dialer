@@ -15,9 +15,14 @@
   ~ limitations under the License
   -->
 <resources>
-  <dimen name="search_bar_margin">16dp</dimen>
-  <dimen name="collapsed_search_bar_height">48dp</dimen>
-  <!-- collapsed + margin * 2 -->
-  <dimen name="expanded_search_bar_height">80dp</dimen>
-  <dimen name="search_bar_corner_radius">24dp</dimen>
+
+  <style name="DialtactsActionBarTabTextStyle"
+    parent="android:style/Widget.Material.ActionBar.TabText">
+    <item name="android:textColor">?android:attr/textColorPrimary</item>
+    <item name="android:textSize">@dimen/tab_text_size</item>
+    <item name="android:fontFamily">"sans-serif-medium"</item>
+  </style>
+
+  <style name="DialtactsTheme" parent="Dialer.ThemeBase.ActionBar">
+  </style>
 </resources>
