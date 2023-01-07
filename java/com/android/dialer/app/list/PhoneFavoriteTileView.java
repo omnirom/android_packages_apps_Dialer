@@ -61,7 +61,7 @@ public abstract class PhoneFavoriteTileView extends ContactTileView {
   // don't crash with an NPE if the drag shadow is released in their bounds
   private static final ClipData EMPTY_CLIP_DATA = ClipData.newPlainText("", "");
   /** View that contains the transparent shadow that is overlaid on top of the contact image. */
-  private View shadowOverlay;
+  protected View shadowOverlay;
   /** Users' most frequent phone number. */
   private String phoneNumberString;
 

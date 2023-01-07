@@ -17,11 +17,14 @@
 package com.android.dialer.app.list;
 
 import android.content.Context;
+import android.graphics.Outline;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.QuickContact;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import com.android.contacts.common.list.ContactEntry;
 import com.android.dialer.app.R;
@@ -37,7 +40,20 @@ public class PhoneFavoriteSquareTileView extends PhoneFavoriteTileView {
   private ImageButton secondaryButton;
 
   private ContactEntry contactEntry;
+  private PhoneFavoriteSquareTileViewOutline mOutlineProvider;
 
+  private static class PhoneFavoriteSquareTileViewOutline extends ViewOutlineProvider {
+        public int mRadius;
+
+        public PhoneFavoriteSquareTileViewOutline(int radius) {
+            mRadius = radius;
+        }
+        @Override
+        public void getOutline(View view, Outline outline) {
+            outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), mRadius);
+        }
+  }
+    
   public PhoneFavoriteSquareTileView(Context context, AttributeSet attrs) {
     super(context, attrs);
 
@@ -54,6 +70,15 @@ public class PhoneFavoriteSquareTileView extends PhoneFavoriteTileView {
     TextView phoneTypeView = findViewById(R.id.contact_tile_phone_type);
     phoneTypeView.setElegantTextHeight(false);
     secondaryButton = findViewById(R.id.contact_tile_secondary_button);
+    
+    mOutlineProvider = new PhoneFavoriteSquareTileViewOutline(
+        getContext().getResources().getDimensionPixelSize(R.dimen.contact_tile_edge_radius));
+    ImageView photo = (ImageView) findViewById(R.id.contact_tile_image);
+    photo.setClipToOutline(true);
+    photo.setOutlineProvider(mOutlineProvider);
+        
+    shadowOverlay.setClipToOutline(true);
+    shadowOverlay.setOutlineProvider(mOutlineProvider);
   }
 
   @Override
@@ -109,5 +134,9 @@ public class PhoneFavoriteSquareTileView extends PhoneFavoriteTileView {
 
   public ContactEntry getContactEntry() {
     return contactEntry;
+  }
+
+  public ViewOutlineProvider getOutlineProvider() {
+    return mOutlineProvider;
   }
 }
