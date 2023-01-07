@@ -163,10 +163,10 @@ LOCAL_ANNOTATION_PROCESSOR_CLASSES := \
   com.google.auto.value.processor.AutoValueProcessor,dagger.internal.codegen.ComponentProcessor,com.bumptech.glide.annotation.compiler.GlideAnnotationProcessor,com.android.dialer.rootcomponentgenerator.RootComponentProcessor
 
 # Proguard includes
-LOCAL_PROGUARD_FLAG_FILES := proguard.flags $(call all-named-files-under,proguard.*flags,$(BASE_DIR))
-LOCAL_PROGUARD_ENABLED := custom
+#LOCAL_PROGUARD_FLAG_FILES := proguard.flags $(call all-named-files-under,proguard.*flags,$(BASE_DIR))
+LOCAL_PROGUARD_ENABLED := disabled
 
-LOCAL_PROGUARD_ENABLED += optimization
+#LOCAL_PROGUARD_ENABLED += optimization
 
 LOCAL_SDK_VERSION := system_current
 LOCAL_MODULE_TAGS := optional
