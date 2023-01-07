@@ -107,7 +107,7 @@
           android:id="@+id/remove_view_content"
           android:layout_width="match_parent"
           android:layout_height="match_parent"
-          android:background="?android:attr/colorPrimary"
+          android:background="@drawable/search_bar_background_rounded_corners"
           android:gravity="center"
           android:orientation="horizontal"
           android:visibility="gone">
@@ -119,14 +119,15 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:src="@drawable/quantum_ic_close_vd_theme_24"
-            android:tint="?colorIconOnUnthemedDarkBackground"/>
+            android:tint="?android:attr/colorPrimary"/>
 
         <TextView
             android:id="@+id/remove_view_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/main_remove_contact"
-            android:textColor="?colorTextOnUnthemedDarkBackground"
+            android:textColor="?android:attr/colorPrimary"
+            android:layout_marginStart="8dp"
             android:textSize="16sp"/>
       </LinearLayout>
     </com.android.dialer.app.list.RemoveView>
