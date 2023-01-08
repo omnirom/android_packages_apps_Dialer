@@ -20,6 +20,8 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.annotation.Nullable;
@@ -154,7 +156,7 @@ public class MainSearchController implements SearchBarListener {
     fab.hide();
     toolbar.slideUp(animate, fragmentContainer);
     toolbar.expand(animate, Optional.absent(), /* requestFocus */ false);
-    toolbarShadow.setVisibility(View.VISIBLE);
+    //toolbarShadow.setVisibility(View.VISIBLE);
 
     activity.setTitle(R.string.dialpad_activity_title);
 
@@ -181,6 +183,12 @@ public class MainSearchController implements SearchBarListener {
     }
     transaction.commit();
 
+    TypedArray a = activity.getTheme().obtainStyledAttributes(R.style.Dialer_ThemeBase_NoActionBar,
+        new int[] {android.R.attr.colorBackgroundFloating});
+    int bgColor = a.getColor(0, Color.TRANSPARENT);
+    a.recycle();
+    activity.getWindow().setNavigationBarColor(bgColor);
+    
     notifyListenersOnSearchOpen();
   }
 
@@ -219,6 +227,7 @@ public class MainSearchController implements SearchBarListener {
     toolbar.slideDown(animate, fragmentContainer);
     toolbar.transferQueryFromDialpad(dialpadFragment.getQuery());
     activity.setTitle(R.string.main_activity_label);
+    activity.getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
     dialpadFragment.setAnimate(animate);
     dialpadFragment.slideDown(
@@ -409,7 +418,7 @@ public class MainSearchController implements SearchBarListener {
     fab.hide();
     toolbar.expand(/* animate=*/ true, query, /* requestFocus */ true);
     toolbar.showKeyboard();
-    toolbarShadow.setVisibility(View.VISIBLE);
+    //toolbarShadow.setVisibility(View.VISIBLE);
     hideBottomNav();
 
     FragmentTransaction transaction = activity.getFragmentManager().beginTransaction();
