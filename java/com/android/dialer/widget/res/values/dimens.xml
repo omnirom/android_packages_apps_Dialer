@@ -22,9 +22,9 @@
   <dimen name="message_divider_height">1dp</dimen>
   <dimen name="send_container_width">48dp</dimen>
 
-  <dimen name="toolbar_title_text_size">20sp</dimen>
+  <dimen name="toolbar_title_text_size">18sp</dimen>
   <dimen name="toolbar_subtitle_text_size">12sp</dimen>
-  <dimen name="toolbar_elevation">4dp</dimen>
+  <dimen name="toolbar_elevation">0dp</dimen>
   <dimen name="toolbar_end_padding">4dp</dimen>
 
   <!-- Empty List -->

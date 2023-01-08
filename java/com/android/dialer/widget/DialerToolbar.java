@@ -38,8 +38,8 @@ public class DialerToolbar extends Toolbar {
     subtitle = (BidiTextView) findViewById(R.id.subtitle);
 
     setElevation(getResources().getDimensionPixelSize(R.dimen.toolbar_elevation));
-    setBackgroundColor(ThemeComponent.get(context).theme().getColorPrimary());
-    setNavigationIcon(R.drawable.quantum_ic_close_white_24);
+    //setBackgroundColor(ThemeComponent.get(context).theme().getColorPrimary());
+    setNavigationIcon(R.drawable.back_arrow);
     setNavigationContentDescription(R.string.toolbar_close);
     setNavigationOnClickListener(v -> ((Activity) context).finish());
     setPaddingRelative(
