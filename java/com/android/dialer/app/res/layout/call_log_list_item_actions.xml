@@ -28,10 +28,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"/>
 
-  <View
+  <!--<View
     android:layout_width="match_parent"
     android:layout_height="1dp"
-    android:background="@color/dialer_divider_line_color"/>
+    android:background="@color/dialer_divider_line_color"/>-->
 
   <LinearLayout
     android:id="@+id/call_action"

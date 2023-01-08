@@ -16,10 +16,12 @@
 
 package com.android.dialer.main.impl.toolbar;
 
+import android.app.Activity;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
@@ -143,6 +145,9 @@ final class SearchBarView extends FrameLayout {
               searchBox.requestFocus();
             }
             setBackgroundResource(R.drawable.search_bar_background);
+            if (getContext() instanceof Activity) {
+              ((Activity )getContext()).getWindow().setStatusBarColor(getContext().getResources().getColor(R.color.search_bar_background_color));
+            }
           }
         });
     animator.start();
@@ -175,6 +180,9 @@ final class SearchBarView extends FrameLayout {
             searchBox.setText("");
             searchBoxExpanded.setVisibility(INVISIBLE);
             setBackgroundResource(R.drawable.search_bar_background_rounded_corners);
+            if (getContext() instanceof Activity) {
+              ((Activity )getContext()).getWindow().setStatusBarColor(Color.TRANSPARENT);
+            }
           }
         });
     animator.start();
