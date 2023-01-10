@@ -16,8 +16,11 @@
 
 package com.android.dialer.main.impl;
 
+import android.app.ActivityManager.TaskDescription;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import com.android.dialer.blockreportspam.ShowBlockReportSpamDialogReceiver;
@@ -80,6 +83,15 @@ public class MainActivity extends TransactionSafeActivity
 
     showBlockReportSpamDialogReceiver =
         new ShowBlockReportSpamDialogReceiver(getSupportFragmentManager());
+
+    TypedArray a = getTheme().obtainStyledAttributes(R.style.Dialer_ThemeBase,
+          new int[] {android.R.attr.colorBackground});
+    int bgColor = a.getColor(0, Color.TRANSPARENT);
+    a.recycle();
+
+    TaskDescription td = new TaskDescription.Builder()
+                .setPrimaryColor(bgColor).build();
+    setTaskDescription(td);
   }
 
   protected MainActivityPeer getNewPeer() {
