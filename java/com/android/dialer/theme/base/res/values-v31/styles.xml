@@ -34,7 +34,7 @@
     <item name="android:colorAccent">?android:attr/colorPrimary</item>
   </style>
   
-    <style name="Dialer.ThemeBase.ActionBar">
+  <style name="Dialer.ThemeBase.ActionBar" parent="Dialer.ThemeBase">
     <item name="android:windowLightStatusBar">true</item>
     <item name="android:windowLightNavigationBar">true</item>
     <item name="android:statusBarColor">@android:color/transparent</item>
@@ -50,7 +50,7 @@
     <item name="listChoiceBackgroundIndicator">@drawable/abc_list_selector_holo_dark</item>
   </style>
   
-  <style name="Dialer.ThemeBase.NoActionBar">
+  <style name="Dialer.ThemeBase.NoActionBar" parent="Dialer.ThemeBase">
     <item name="android:windowLightStatusBar">true</item>
     <item name="android:windowLightNavigationBar">true</item>
     <item name="android:statusBarColor">@android:color/transparent</item>

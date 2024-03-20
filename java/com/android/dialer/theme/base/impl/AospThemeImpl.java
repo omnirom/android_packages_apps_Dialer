@@ -22,7 +22,6 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.StyleRes;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
-import com.android.dialer.common.Assert;
 import com.android.dialer.theme.base.R;
 import com.android.dialer.theme.base.Theme;
 import javax.inject.Singleton;
@@ -47,7 +46,6 @@ public class AospThemeImpl implements Theme {
   private int colorIconOnUnthemedDarkBackground = -1;
 
   public AospThemeImpl(Context context) {
-
     context = context.getApplicationContext();
     context.setTheme(getApplicationThemeRes());
     TypedArray array =
@@ -86,27 +84,9 @@ public class AospThemeImpl implements Theme {
     array.recycle();
   }
 
-  /**
-   * Returns the {@link Theme} that the application is using. Activities should check this value if
-   * their custom style needs to customize further based on the application theme.
-   */
-  @Override
-  public @Type int getTheme() {
-    // TODO(a bug): add share prefs check to configure this
-    return LIGHT;
-  }
-
   @Override
   public @StyleRes int getApplicationThemeRes() {
-    switch (getTheme()) {
-      case DARK:
-        return R.style.Dialer_Dark_ThemeBase_NoActionBar;
-      case LIGHT:
-        return R.style.Dialer_ThemeBase_NoActionBar;
-      case UNKNOWN:
-      default:
-        throw Assert.createIllegalStateFailException("Theme hasn't been set yet.");
-    }
+    return R.style.Dialer_ThemeBase_NoActionBar;
   }
 
   @Override
@@ -121,55 +101,46 @@ public class AospThemeImpl implements Theme {
 
   @Override
   public @ColorInt int getColorIcon() {
-    Assert.checkArgument(colorIcon != -1);
     return colorIcon;
   }
 
   @Override
   public @ColorInt int getColorIconSecondary() {
-    Assert.checkArgument(colorIconSecondary != -1);
     return colorIconSecondary;
   }
 
   @Override
   public @ColorInt int getColorPrimary() {
-    Assert.checkArgument(colorPrimary != -1);
     return colorPrimary;
   }
 
   @Override
   public int getColorPrimaryDark() {
-    Assert.checkArgument(colorPrimaryDark != -1);
     return colorPrimaryDark;
   }
 
   @Override
   public @ColorInt int getColorAccent() {
-    Assert.checkArgument(colorAccent != -1);
     return colorAccent;
   }
 
   @Override
   public @ColorInt int getTextColorSecondary() {
-    Assert.checkArgument(textColorSecondary != -1);
     return textColorSecondary;
   }
 
   @Override
   public @ColorInt int getTextColorPrimary() {
-    Assert.checkArgument(textColorPrimary != -1);
     return textColorPrimary;
   }
 
   @Override
   public @ColorInt int getColorTextOnUnthemedDarkBackground() {
-    Assert.checkArgument(colorTextOnUnthemedDarkBackground != -1);
     return colorTextOnUnthemedDarkBackground;
   }
 
   @Override
   public @ColorInt int getColorIconOnUnthemedDarkBackground() {
-    Assert.checkArgument(colorIconOnUnthemedDarkBackground != -1);
     return colorIconOnUnthemedDarkBackground;
   }
 }
