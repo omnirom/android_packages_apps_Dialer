@@ -47,7 +47,6 @@ public class AospThemeImpl implements Theme {
   private int colorIconOnUnthemedDarkBackground = -1;
 
   public AospThemeImpl(Context context) {
-
     context = context.getApplicationContext();
     context.setTheme(getApplicationThemeRes());
     TypedArray array =
@@ -86,27 +85,9 @@ public class AospThemeImpl implements Theme {
     array.recycle();
   }
 
-  /**
-   * Returns the {@link Theme} that the application is using. Activities should check this value if
-   * their custom style needs to customize further based on the application theme.
-   */
-  @Override
-  public @Type int getTheme() {
-    // TODO(a bug): add share prefs check to configure this
-    return LIGHT;
-  }
-
   @Override
   public @StyleRes int getApplicationThemeRes() {
-    switch (getTheme()) {
-      case DARK:
-        return R.style.Dialer_Dark_ThemeBase_NoActionBar;
-      case LIGHT:
-        return R.style.Dialer_ThemeBase_NoActionBar;
-      case UNKNOWN:
-      default:
-        throw Assert.createIllegalStateFailException("Theme hasn't been set yet.");
-    }
+    return R.style.Dialer_ThemeBase_NoActionBar;
   }
 
   @Override

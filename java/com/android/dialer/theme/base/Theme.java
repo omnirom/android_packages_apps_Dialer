@@ -27,19 +27,6 @@ import java.lang.annotation.RetentionPolicy;
 /** Interface for theme. */
 public interface Theme {
 
-  /** IntDef for the different themes Dialer supports. */
-  @Retention(RetentionPolicy.SOURCE)
-  @IntDef({UNKNOWN, LIGHT, DARK, LIGHT_M2})
-  @interface Type {}
-
-  int UNKNOWN = 0;
-  int LIGHT = 1;
-  int DARK = 2;
-  int LIGHT_M2 = 3;
-
-  @Type
-  int getTheme();
-
   @StyleRes
   int getApplicationThemeRes();
 
