@@ -36,7 +36,6 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.Nullable;
 import android.support.v13.app.FragmentCompat;
 import android.support.v13.app.FragmentCompat.OnRequestPermissionsResultCallback;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -333,7 +332,7 @@ public class CallLogFragment extends Fragment
 
     contactInfoCache =
         new ContactInfoCache(
-            ExpirableCacheHeadlessFragment.attach((AppCompatActivity) getActivity())
+            ExpirableCacheHeadlessFragment.attach(this)
                 .getRetainedCache(),
             new ContactInfoHelper(getActivity(), currentCountryIso),
             onContactInfoChangedListener);

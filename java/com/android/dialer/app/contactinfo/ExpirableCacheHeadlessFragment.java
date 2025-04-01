@@ -16,11 +16,10 @@
 
 package com.android.dialer.app.contactinfo;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
 import com.android.dialer.phonenumbercache.ContactInfo;
 import com.android.dialer.util.ExpirableCache;
 
@@ -37,8 +36,8 @@ public class ExpirableCacheHeadlessFragment extends Fragment {
   private ExpirableCache<NumberWithCountryIso, ContactInfo> retainedCache;
 
   @NonNull
-  public static ExpirableCacheHeadlessFragment attach(@NonNull AppCompatActivity parentActivity) {
-    return attach(parentActivity.getSupportFragmentManager());
+  public static ExpirableCacheHeadlessFragment attach(@NonNull Fragment fragment) {
+    return attach(fragment.getChildFragmentManager());
   }
 
   @NonNull
