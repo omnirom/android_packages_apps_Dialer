@@ -1,6 +1,12 @@
 # Keep the annotation, classes, methods, and fields marked as UsedByReflection
--keep class com.android.dialer.proguard.UsedByReflection
--keep @com.android.dialer.proguard.UsedByReflection class *
+# TODO(b/373579455): Evaluate if <init> needs to be kept.
+-keep class com.android.dialer.proguard.UsedByReflection {
+    void <init>();
+}
+# TODO(b/373579455): Evaluate if <init> needs to be kept.
+-keep @com.android.dialer.proguard.UsedByReflection class * {
+    void <init>();
+}
 -keepclassmembers class * {
     @com.android.dialer.proguard.UsedByReflection *;
 }
